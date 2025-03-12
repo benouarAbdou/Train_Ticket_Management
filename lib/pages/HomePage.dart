@@ -198,9 +198,12 @@ class _MyHomePageState extends State<MyHomePage> {
                         ? const Center(child: Text('No trains found'))
                         : ListView.builder(
                           itemCount: firebaseController.searchResults.length,
+                          padding: EdgeInsets.zero,
+
                           itemBuilder: (context, index) {
                             final train =
                                 firebaseController.searchResults[index];
+
                             return TrainTicket(
                               departureCity: train['departureCity'],
                               arrivalCity: train['arrivalCity'],
@@ -209,6 +212,9 @@ class _MyHomePageState extends State<MyHomePage> {
                               departureDate: train['departureDate'],
                               arrivalDate: train['arrivalDate'],
                               seatsLeft: train['seatsLeft'],
+                              price: train['price'],
+                              numberOfPassengers:
+                                  int.tryParse(_passengersController.text) ?? 1,
                             );
                           },
                         ),

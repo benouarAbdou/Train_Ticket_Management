@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_app/pages/BookingScreen.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 
@@ -10,6 +11,8 @@ class TrainTicket extends StatelessWidget {
   final String departureDate;
   final String arrivalDate;
   final int seatsLeft;
+  final double price;
+  final int numberOfPassengers;
 
   const TrainTicket({
     super.key,
@@ -20,102 +23,152 @@ class TrainTicket extends StatelessWidget {
     required this.departureDate,
     required this.arrivalDate,
     required this.seatsLeft,
+    required this.numberOfPassengers,
+    required this.price,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: TSizes.sm),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(TSizes.md),
-            child: Column(
-              children: [
-                SizedBox(height: TSizes.md),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      departureCity,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleLarge!.copyWith(color: TColors.primary),
-                    ),
-                    Text(
-                      arrivalCity,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleLarge!.copyWith(color: TColors.primary),
-                    ),
-                  ],
+    return GestureDetector(
+      onTap: () {
+        // Navigate to TicketDetailsScreen with the ticket data
+        print(price);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => BookingScreen(
+                  departureCity: departureCity,
+                  arrivalCity: arrivalCity,
+                  departureTime: departureTime,
+                  arrivalTime: arrivalTime,
+                  departureDate: departureDate,
+                  arrivalDate: arrivalDate,
+                  price: price,
+                  seatsLeft: seatsLeft,
+                  numberOfPassengers: numberOfPassengers,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          departureTime,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        Text(
-                          departureDate,
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                      ],
-                    ),
-                    const Center(child: Icon(Icons.train)),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          arrivalTime,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        Text(
-                          arrivalDate,
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
           ),
-          // Seats Left Indicator at Top-Right
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: TSizes.lg,
-                vertical: TSizes.xs,
-              ),
-              decoration: BoxDecoration(
-                color: TColors.primary,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(TSizes.borderRadiusMd),
-                  topRight: Radius.circular(TSizes.borderRadiusLg),
-                ),
-              ),
-              child: Text(
-                '$seatsLeft Seats Left',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: TSizes.fontSizeSm,
-                  fontWeight: FontWeight.bold,
-                ),
+        );
+      },
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: TSizes.sm),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(TSizes.md),
+              child: Column(
+                children: [
+                  SizedBox(height: TSizes.md),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        departureCity,
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          color: TColors.primary,
+                        ),
+                      ),
+                      Text(
+                        arrivalCity,
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          color: TColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            departureTime,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          Text(
+                            departureDate,
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
+                        ],
+                      ),
+                      const Center(child: Icon(Icons.train)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            arrivalTime,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          Text(
+                            arrivalDate,
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+            // Seats Left Indicator at Top-Right
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TSizes.lg,
+                  vertical: TSizes.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: TColors.primary,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(TSizes.borderRadiusMd),
+                    topRight: Radius.circular(TSizes.borderRadiusLg),
+                  ),
+                ),
+                child: Text(
+                  '$seatsLeft Seats Left',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: TSizes.fontSizeSm,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: TSizes.lg,
+                  vertical: TSizes.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: TColors.primary,
+                  borderRadius: const BorderRadius.only(
+                    bottomRight: Radius.circular(TSizes.borderRadiusMd),
+                    topLeft: Radius.circular(TSizes.borderRadiusLg),
+                  ),
+                ),
+                child: Text(
+                  '\$${price.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: TSizes.fontSizeSm,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
