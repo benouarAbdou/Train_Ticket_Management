@@ -14,7 +14,7 @@ class Train_appTheme {
   Train_appTheme._();
 
   static ThemeData lightTheme = ThemeData(
-    useMaterial3: true,
+    useMaterial3: false,
     fontFamily: 'Poppins',
     disabledColor: TColors.grey,
     brightness: Brightness.light,

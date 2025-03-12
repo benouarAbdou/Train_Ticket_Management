@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
+import 'package:train_app/widgets/TrainTicket.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -45,6 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: TColors.bg,
       body: Padding(
         padding: const EdgeInsets.all(TSizes.defaultSpace),
         child: Column(
@@ -156,6 +159,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 child: const Text('Search'),
               ),
+            ),
+            const SizedBox(height: TSizes.spaceBtwInputFields / 2),
+            TrainTicket(
+              departureCity: 'Oran',
+              arrivalCity: 'Alger',
+              departureTime: '8:45 AM',
+              arrivalTime: '12:30 PM',
+              departureDate: '25-12-2025',
+              arrivalDate: '25-12-2025',
+              seatsLeft: 5,
             ),
           ],
         ),

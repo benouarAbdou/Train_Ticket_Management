@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1019706588532",
+    "project_id": "trainapp-2caac",
+    "storage_bucket": "trainapp-2caac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1019706588532:android:797f0555ff319152a30021",
+        "android_client_info": {
+          "package_name": "com.ranwip.trainapp.train_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwf25OJuFKj0nsn0qG1rEGypLFeZ4EDNI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
