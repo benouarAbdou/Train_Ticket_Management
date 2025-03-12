@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:get/get.dart';
+import 'package:train_app/controllers/FirebaseController.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 import 'package:train_app/widgets/TrainTicket.dart';
@@ -15,6 +17,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _departController = TextEditingController();
   final TextEditingController _destinationController = TextEditingController();
   final TextEditingController _passengersController = TextEditingController();
+  final FirebaseController firebaseController = Get.find<FirebaseController>();
+
   DateTime? _selectedDate = DateTime.now();
 
   final List<String> stations = [
@@ -28,6 +32,21 @@ class _MyHomePageState extends State<MyHomePage> {
     'San Diego',
     'Dallas',
     'San Jose',
+    'Austin',
+    'Jacksonville',
+    'Fort Worth',
+    'Columbus',
+    'Indianapolis',
+    'Charlotte',
+    'Seattle',
+    'Denver',
+    'Washington',
+    'Boston',
+    'Oran',
+    'Alger',
+    'Constantine',
+    'Annaba',
+    'Tlemcen',
   ];
 
   Future<void> _selectDate(BuildContext context) async {
@@ -41,6 +60,29 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _selectedDate = picked;
       });
+    }
+  }
+
+  void _searchTrains() async {
+    final depart = _departController.text;
+    final destination = _destinationController.text;
+    final passengers = int.tryParse(_passengersController.text) ?? 0;
+    final date = _selectedDate;
+
+    if (depart.isNotEmpty &&
+        destination.isNotEmpty &&
+        passengers > 0 &&
+        date != null) {
+      await firebaseController.searchTrains(
+        departureCity: depart,
+        arrivalCity: destination,
+        date: date,
+        passengers: passengers,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields correctly')),
+      );
     }
   }
 
@@ -60,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: TSizes.spaceBtwInputFields),
             TypeAheadField(
-              controller: _departController, // Add controller
+              controller: _departController,
               suggestionsCallback: (pattern) {
                 return stations
                     .where(
@@ -87,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: TSizes.spaceBtwInputFields),
             TypeAheadField(
-              controller: _destinationController, // Add controller
+              controller: _destinationController,
               suggestionsCallback: (pattern) {
                 return stations
                     .where(
@@ -121,7 +163,6 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             const SizedBox(height: TSizes.spaceBtwInputFields / 2),
-
             Row(
               children: [
                 Expanded(
@@ -142,34 +183,56 @@ class _MyHomePageState extends State<MyHomePage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  final depart = _departController.text;
-                  final destination = _destinationController.text;
-                  final date = _selectedDate;
-
-                  if (depart.isNotEmpty &&
-                      destination.isNotEmpty &&
-                      date != null) {
-                    print('Searching for $depart to $destination on $date');
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please fill all fields')),
-                    );
-                  }
-                },
+                onPressed: _searchTrains,
                 child: const Text('Search'),
               ),
             ),
-            const SizedBox(height: TSizes.spaceBtwInputFields / 2),
-            TrainTicket(
-              departureCity: 'Oran',
-              arrivalCity: 'Alger',
-              departureTime: '8:45 AM',
-              arrivalTime: '12:30 PM',
-              departureDate: '25-12-2025',
-              arrivalDate: '25-12-2025',
-              seatsLeft: 5,
+            const SizedBox(height: TSizes.spaceBtwInputFields),
+            // Display search results
+            Expanded(
+              child: Obx(
+                () =>
+                    firebaseController.isLoading.value
+                        ? const Center(child: CircularProgressIndicator())
+                        : firebaseController.searchResults.isEmpty
+                        ? const Center(child: Text('No trains found'))
+                        : ListView.builder(
+                          itemCount: firebaseController.searchResults.length,
+                          itemBuilder: (context, index) {
+                            final train =
+                                firebaseController.searchResults[index];
+                            return TrainTicket(
+                              departureCity: train['departureCity'],
+                              arrivalCity: train['arrivalCity'],
+                              departureTime: train['departureTime'],
+                              arrivalTime: train['arrivalTime'],
+                              departureDate: train['departureDate'],
+                              arrivalDate: train['arrivalDate'],
+                              seatsLeft: train['seatsLeft'],
+                            );
+                          },
+                        ),
+              ),
             ),
+            // Debug buttons
+            /*SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  await firebaseController.createDummyData();
+                },
+                child: const Text('Add dummy data'),
+              ),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  await firebaseController.clearFirestoreData();
+                },
+                child: const Text('Clear dummy data'),
+              ),
+            ),*/
           ],
         ),
       ),
