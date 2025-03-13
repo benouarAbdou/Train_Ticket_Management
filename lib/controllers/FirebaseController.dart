@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:uuid/uuid.dart';
 
 class FirebaseController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -20,6 +21,11 @@ class FirebaseController extends GetxController {
     _auth.authStateChanges().listen((User? currentUser) {
       user.value = currentUser;
     });
+  }
+
+  String generateRandomUuid() {
+    final Uuid uuid = Uuid();
+    return uuid.v4(); // Generates a random UUID (version 4)
   }
 
   // Authentication methods
@@ -174,6 +180,8 @@ class FirebaseController extends GetxController {
         // Update seats left (decrement by 1)
         transaction.update(trainRef, {'seatsLeft': seatsLeft - 1});
 
+        String passengerId = generateRandomUuid();
+
         // Create individual booking
         DocumentReference bookingRef = _firestore.collection('bookings').doc();
         transaction.set(bookingRef, {
@@ -185,7 +193,7 @@ class FirebaseController extends GetxController {
           'arrivalTime': arrivalTime,
           'departureDate': departureDate,
           'arrivalDate': arrivalDate,
-          'passengers': 1,
+          'passengerId': passengerId,
           'passengerNames': passengerNames, // Single name array
           'bookingDate': DateTime.now().toIso8601String(),
           'status': 'confirmed',
@@ -224,7 +232,7 @@ class FirebaseController extends GetxController {
           'departureDate': bookingData['departureDate'],
           'arrivalDate': bookingData['arrivalDate'],
           'price': bookingData['price'],
-          'numberOfPassengers': bookingData['passengers'],
+          'passengerId': bookingData['passengerId'],
           'status': bookingData['status'],
           'passengerNames': bookingData['passengerNames'],
           'id': doc.id,
@@ -257,130 +265,5 @@ class FirebaseController extends GetxController {
       print('Error getting user bookings: $e');
       return [];
     }
-  }
-
-  Future<bool> cancelBooking(String bookingId) async {
-    try {
-      return await _firestore.runTransaction<bool>((transaction) async {
-        DocumentReference bookingRef = _firestore
-            .collection('bookings')
-            .doc(bookingId);
-        DocumentSnapshot bookingSnapshot = await transaction.get(bookingRef);
-
-        if (!bookingSnapshot.exists) return false;
-
-        final bookingData = bookingSnapshot.data() as Map<String, dynamic>;
-        if (bookingData['status'] == 'cancelled') return false;
-
-        DocumentReference trainRef = _firestore
-            .collection('trains')
-            .doc(bookingData['trainId']);
-        DocumentSnapshot trainSnapshot = await transaction.get(trainRef);
-
-        if (!trainSnapshot.exists) return false;
-
-        final trainData = trainSnapshot.data() as Map<String, dynamic>;
-        transaction.update(trainRef, {
-          'seatsLeft': trainData['seatsLeft'] + bookingData['passengers'],
-        });
-
-        transaction.update(bookingRef, {
-          'status': 'cancelled',
-          'cancelledAt': DateTime.now().toIso8601String(),
-        });
-
-        return true;
-      });
-    } catch (e) {
-      print('Error cancelling booking: $e');
-      return false;
-    }
-  }
-
-  // Admin: Destination Management
-  Future<void> addStation(String name, Map<String, int> distances) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    await _firestore.collection('stations').doc(name).set({
-      'name': name,
-      'isActive': true,
-      'distances': distances,
-    });
-  }
-
-  Future<void> editStation(
-    String name, {
-    Map<String, int>? distances,
-    bool? isActive,
-  }) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    final updates = <String, dynamic>{};
-    if (distances != null) updates['distances'] = distances;
-    if (isActive != null) updates['isActive'] = isActive;
-    await _firestore.collection('stations').doc(name).update(updates);
-  }
-
-  Future<void> toggleStationActive(String name, bool isActive) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    await _firestore.collection('stations').doc(name).update({
-      'isActive': isActive,
-    });
-  }
-
-  // Admin: Train Management
-  Future<void> createRoute(String name, List<String> stationIds) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    await _firestore.collection('routes').add({
-      'name': name,
-      'stationIds': stationIds,
-      'isActive': true,
-    });
-  }
-
-  Future<void> editRoute(
-    String routeId, {
-    List<String>? stationIds,
-    bool? isActive,
-  }) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    final updates = <String, dynamic>{};
-    if (stationIds != null) updates['stationIds'] = stationIds;
-    if (isActive != null) updates['isActive'] = isActive;
-    await _firestore.collection('routes').doc(routeId).update(updates);
-  }
-
-  Future<void> createTrain({
-    required String routeId,
-    required String date,
-    required Map<String, String> schedule,
-    required int seatsTotal,
-    required double pricePerPassenger,
-  }) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    await _firestore.collection('trains').add({
-      'routeId': routeId,
-      'date': date,
-      'schedule': schedule,
-      'seatsTotal': seatsTotal,
-      'seatsLeft': seatsTotal,
-      'pricePerPassenger': pricePerPassenger,
-      'isActive': true,
-    });
-  }
-
-  Future<void> editTrain(
-    String trainId, {
-    Map<String, String>? schedule,
-    int? seatsTotal,
-    double? pricePerPassenger,
-    bool? isActive,
-  }) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    final updates = <String, dynamic>{};
-    if (schedule != null) updates['schedule'] = schedule;
-    if (seatsTotal != null) updates['seatsTotal'] = seatsTotal;
-    if (pricePerPassenger != null)
-      updates['pricePerPassenger'] = pricePerPassenger;
-    if (isActive != null) updates['isActive'] = isActive;
-    await _firestore.collection('trains').doc(trainId).update(updates);
   }
 }

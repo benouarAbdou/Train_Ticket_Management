@@ -15,6 +15,7 @@ class BookingScreen extends StatefulWidget {
   final double price;
   final int seatsLeft;
   final int numberOfPassengers;
+  final String trainId;
 
   const BookingScreen({
     super.key,
@@ -27,6 +28,7 @@ class BookingScreen extends StatefulWidget {
     required this.price,
     required this.seatsLeft,
     required this.numberOfPassengers,
+    required this.trainId,
   });
 
   @override
@@ -199,7 +201,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     // Create individual bookings for each passenger
                     for (int i = 0; i < numberOfPassengers; i++) {
                       Map<String, dynamic> bookingData = {
-                        'trainId': 'KmbvZVlX3rS2XhspIyzA',
+                        'trainId': widget.trainId,
                         'departureCity': widget.departureCity,
                         'arrivalCity': widget.arrivalCity,
                         'departureTime': widget.departureTime,

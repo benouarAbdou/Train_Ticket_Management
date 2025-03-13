@@ -232,6 +232,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           _passengersController.text,
                                         ) ??
                                         1,
+                                    trainId: train['id'],
                                   ),
                                 );
                               },

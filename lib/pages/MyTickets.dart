@@ -67,6 +67,7 @@ class BookedTicketsScreen extends StatelessWidget {
                             booking['passengerNames']?.cast<String>(),
                         numberOfPassengers: booking['numberOfPassengers'] ?? 1,
                         ticketId: booking["id"],
+                        passengerId: booking['passengerId'],
                       ),
                     );
                   },

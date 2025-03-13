@@ -19,6 +19,7 @@ class TicketDetailsScreen extends StatelessWidget {
   final String? status;
   final List<String>? passengerNames;
   final String? ticketId;
+  final String passengerId;
 
   const TicketDetailsScreen({
     super.key,
@@ -33,6 +34,7 @@ class TicketDetailsScreen extends StatelessWidget {
     this.status,
     this.passengerNames,
     this.ticketId,
+    required this.passengerId,
   });
 
   // Share ticket details
@@ -53,8 +55,6 @@ Ticket ID: ${ticketId ?? 'Not provided'}
 
   @override
   Widget build(BuildContext context) {
-    String userId = Get.find<HiveController>().getUserIdSync();
-
     return Scaffold(
       backgroundColor: TColors.bg,
       appBar: AppBar(title: const Text('Boarding Pass')),
@@ -126,7 +126,7 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                   'Passenger ID',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                Text(userId, style: Theme.of(context).textTheme.bodyLarge),
+                Text(passengerId, style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: TSizes.sm),
                 Text(
                   'Passengers',
