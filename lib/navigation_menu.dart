@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:train_app/pages/HomePage.dart';
 import 'package:train_app/pages/MyTickets.dart';
+import 'package:train_app/pages/SettingsPage.dart';
 import 'package:train_app/utils/constants/colors.dart';
 
 class NavigationMenu extends StatelessWidget {
@@ -42,6 +43,6 @@ class NavigationController extends GetxController {
   final screens = [
     const MyHomePage(),
     BookedTicketsScreen(),
-    const MyHomePage(),
+    const SettingsScreen(),
   ];
 }

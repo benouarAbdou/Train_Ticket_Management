@@ -266,10 +266,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     print('Booking error: $e');
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: TSizes.lg),
-                  backgroundColor: TColors.primary,
-                ),
+
                 child: const Text(
                   'Book Now',
                   style: TextStyle(color: Colors.white),

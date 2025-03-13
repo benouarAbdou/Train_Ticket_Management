@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 import 'package:share_plus/share_plus.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 import 'package:train_app/utils/services/PdfServices.dart';
-import '../controllers/HiveController.dart';
 
 class TicketDetailsScreen extends StatelessWidget {
   final String departureCity;
@@ -168,10 +166,7 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                     Expanded(
                       child: ElevatedButton(
                         onPressed: _shareTicket,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: TColors.primary,
-                          foregroundColor: Colors.white,
-                        ),
+
                         child: const Text('Share Ticket'),
                       ),
                     ),
@@ -193,10 +188,7 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                               passengerNames: passengerNames,
                               ticketId: ticketId,
                             ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: TColors.primary,
-                          foregroundColor: Colors.white,
-                        ),
+
                         child: const Text('Download PDF'),
                       ),
                     ),
