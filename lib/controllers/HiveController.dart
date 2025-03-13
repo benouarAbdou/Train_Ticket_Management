@@ -26,7 +26,6 @@ class HiveController extends GetxController {
     }
   }
 
-  // Ensure initialization is complete before proceeding
   Future<void> _ensureInitialized() async {
     if (!_isInitialized) {
       debugPrint('HiveController: Waiting for initialization...');
@@ -47,6 +46,21 @@ class HiveController extends GetxController {
       debugPrint('HiveController: Retrieved existing user ID: $userId');
     }
     return userId;
+  }
+
+  // Save admin login status
+  Future<void> saveAdminLoginStatus(bool isLoggedIn) async {
+    await _ensureInitialized();
+    debugPrint('HiveController: Saving admin login status: $isLoggedIn');
+    await _userBox.put('isAdminLoggedIn', isLoggedIn);
+  }
+
+  // Get admin login status
+  Future<bool> getAdminLoginStatus() async {
+    await _ensureInitialized();
+    final isLoggedIn = _userBox.get('isAdminLoggedIn', defaultValue: false);
+    debugPrint('HiveController: Retrieved admin login status: $isLoggedIn');
+    return isLoggedIn;
   }
 
   // Save a booking ticket locally
@@ -86,7 +100,6 @@ class HiveController extends GetxController {
     return booking;
   }
 
-  // In HiveController.dart
   String getUserIdSync() {
     if (!_isInitialized) {
       throw Exception('HiveController not initialized yet');

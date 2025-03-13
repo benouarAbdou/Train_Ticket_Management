@@ -1,9 +1,18 @@
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:train_app/controllers/HiveController.dart';
 
 class FirebaseAdminController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final RxBool isAdminLoggedIn = false.obs;
+  final HiveController hiveController = Get.find<HiveController>();
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadInitialLoginStatus();
+  }
 
   Future<bool> isAdmin() async {
     final user = _auth.currentUser;
@@ -11,6 +20,10 @@ class FirebaseAdminController extends GetxController {
     // Assuming custom claims are used for admin status
     final token = await user.getIdTokenResult();
     return token.claims?['admin'] == true;
+  }
+
+  Future<void> _loadInitialLoginStatus() async {
+    isAdminLoggedIn.value = await hiveController.getAdminLoginStatus();
   }
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -107,6 +120,8 @@ class FirebaseAdminController extends GetxController {
     try {
       final UserCredential userCredential = await _auth
           .signInWithEmailAndPassword(email: email, password: password);
+      await hiveController.saveAdminLoginStatus(true);
+      isAdminLoggedIn.value = true;
       return userCredential;
     } catch (e) {
       throw 'Failed to sign in: ${e.toString()}';
@@ -115,5 +130,7 @@ class FirebaseAdminController extends GetxController {
 
   Future<void> signOut() async {
     await _auth.signOut();
+    await hiveController.saveAdminLoginStatus(false);
+    isAdminLoggedIn.value = false;
   }
 }

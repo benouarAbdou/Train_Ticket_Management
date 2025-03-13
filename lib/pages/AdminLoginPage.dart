@@ -33,7 +33,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
           _emailController.text.trim(),
           _passwordController.text,
         );
-        Get.back(); // Return to previous screen after successful login
+        Get.back();
       } catch (e) {
         ScaffoldMessenger.of(
           context,
