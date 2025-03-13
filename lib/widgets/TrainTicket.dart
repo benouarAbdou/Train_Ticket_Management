@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:train_app/pages/BookingScreen.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 
@@ -10,9 +9,11 @@ class TrainTicket extends StatelessWidget {
   final String arrivalTime;
   final String departureDate;
   final String arrivalDate;
-  final int seatsLeft;
+  final int? seatsLeft; // Made nullable
   final double price;
   final int numberOfPassengers;
+  final String? status; // Added status parameter
+  final GestureTapCallback onTap;
 
   const TrainTicket({
     super.key,
@@ -22,35 +23,17 @@ class TrainTicket extends StatelessWidget {
     required this.arrivalTime,
     required this.departureDate,
     required this.arrivalDate,
-    required this.seatsLeft,
-    required this.numberOfPassengers,
+    this.seatsLeft,
     required this.price,
+    required this.numberOfPassengers,
+    this.status,
+    required this.onTap, // Optional status
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // Navigate to TicketDetailsScreen with the ticket data
-        print(price);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) => BookingScreen(
-                  departureCity: departureCity,
-                  arrivalCity: arrivalCity,
-                  departureTime: departureTime,
-                  arrivalTime: arrivalTime,
-                  departureDate: departureDate,
-                  arrivalDate: arrivalDate,
-                  price: price,
-                  seatsLeft: seatsLeft,
-                  numberOfPassengers: numberOfPassengers,
-                ),
-          ),
-        );
-      },
+      onTap: onTap,
       child: Container(
         margin: EdgeInsets.symmetric(vertical: TSizes.sm),
         decoration: BoxDecoration(
@@ -116,7 +99,7 @@ class TrainTicket extends StatelessWidget {
                 ],
               ),
             ),
-            // Seats Left Indicator at Top-Right
+            // Status or Seats Left Indicator at Top-Right
             Positioned(
               top: 0,
               right: 0,
@@ -126,14 +109,16 @@ class TrainTicket extends StatelessWidget {
                   vertical: TSizes.xs,
                 ),
                 decoration: BoxDecoration(
-                  color: TColors.primary,
+                  color: TColors.black,
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(TSizes.borderRadiusMd),
                     topRight: Radius.circular(TSizes.borderRadiusLg),
                   ),
                 ),
                 child: Text(
-                  '$seatsLeft Seats Left',
+                  seatsLeft != null
+                      ? '$seatsLeft Seats Left'
+                      : (status ?? 'Unknown'),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: TSizes.fontSizeSm,

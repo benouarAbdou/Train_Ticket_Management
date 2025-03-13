@@ -137,6 +137,10 @@ class FirebaseController extends GetxController {
     required String arrivalCity,
     required int passengers,
     required String userId,
+    required String departureTime,
+    required String arrivalTime,
+    required String departureDate,
+    required String arrivalDate,
     required List<String> passengerNames,
   }) async {
     try {
@@ -176,6 +180,10 @@ class FirebaseController extends GetxController {
           'trainId': trainId,
           'departureCity': departureCity,
           'arrivalCity': arrivalCity,
+          'departureTime': departureTime, // Added
+          'arrivalTime': arrivalTime, // Added
+          'departureDate': departureDate, // Added
+          'arrivalDate': arrivalDate, // Added
           'passengers': passengers,
           'passengerNames': passengerNames,
           'bookingDate': DateTime.now().toIso8601String(),
@@ -189,6 +197,44 @@ class FirebaseController extends GetxController {
     } catch (e) {
       print('Error booking ticket: $e'); // Debugging print
       return false;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> readBookedTickets(String userId) async {
+    try {
+      print('Fetching booked tickets for user: $userId');
+      QuerySnapshot bookingSnapshot =
+          await FirebaseFirestore.instance
+              .collection('bookings')
+              .where('userId', isEqualTo: userId)
+              .get();
+
+      List<Map<String, dynamic>> bookings = [];
+
+      for (var doc in bookingSnapshot.docs) {
+        Map<String, dynamic> bookingData = doc.data() as Map<String, dynamic>;
+        print('Booking data: $bookingData'); // Debug raw booking data
+
+        bookings.add({
+          'departureCity': bookingData['departureCity'],
+          'arrivalCity': bookingData['arrivalCity'],
+          'departureTime': bookingData['departureTime'],
+          'arrivalTime': bookingData['arrivalTime'],
+          'departureDate': bookingData['departureDate'],
+          'arrivalDate': bookingData['arrivalDate'],
+          'price': bookingData['price'],
+          'numberOfPassengers': bookingData['passengers'],
+          'status': bookingData['status'],
+          'passengerNames': bookingData['passengerNames'],
+          'id': doc.id,
+        });
+      }
+
+      print('Found ${bookings.length} bookings');
+      return bookings;
+    } catch (e) {
+      print('Error reading booked tickets: $e');
+      return [];
     }
   }
 

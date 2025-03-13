@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:train_app/pages/HomePage.dart';
+import 'package:train_app/pages/MyTickets.dart';
 import 'package:train_app/utils/constants/colors.dart';
 
 class NavigationMenu extends StatelessWidget {
@@ -38,5 +39,9 @@ class NavigationMenu extends StatelessWidget {
 class NavigationController extends GetxController {
   final Rx<int> selectedIndex = 0.obs;
 
-  final screens = [const MyHomePage(), const MyHomePage(), const MyHomePage()];
+  final screens = [
+    const MyHomePage(),
+    BookedTicketsScreen(),
+    const MyHomePage(),
+  ];
 }

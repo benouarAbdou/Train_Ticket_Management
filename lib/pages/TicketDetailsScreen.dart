@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'dart:math';
-
+import 'package:share_plus/share_plus.dart'; // For sharing functionality
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
+
+import '../controllers/HiveController.dart';
 
 class TicketDetailsScreen extends StatelessWidget {
   final String departureCity;
@@ -11,7 +14,11 @@ class TicketDetailsScreen extends StatelessWidget {
   final String arrivalTime;
   final String departureDate;
   final String arrivalDate;
-  final int price;
+  final double price;
+  final int? numberOfPassengers; // Optional, from booking
+  final String? status; // Optional, from booking
+  final List<String>? passengerNames; // Optional, from booking
+  final String? ticketId; // Optional, from booking
 
   const TicketDetailsScreen({
     super.key,
@@ -22,110 +29,195 @@ class TicketDetailsScreen extends StatelessWidget {
     required this.departureDate,
     required this.arrivalDate,
     required this.price,
+    this.numberOfPassengers,
+    this.status,
+    this.passengerNames,
+    this.ticketId,
   });
 
   // Generate a random passenger ID (e.g., 6-digit number)
-  String _generatePassengerId() {
-    final random = Random();
-    return 'P${random.nextInt(900000) + 100000}'; // Generates P100000 to P999999
-  }
 
   // Generate ticket number with "TRA" prefix
-  String _generateTicketNumber() {
-    final random = Random();
-    return 'TRA${random.nextInt(900000) + 100000}'; // Generates TRA100000 to TRA999999
+
+  // Share ticket details
+  void _shareTicket() {
+    final ticketDetails = '''
+From: $departureCity at $departureTime, $departureDate
+To: $arrivalCity at $arrivalTime, $arrivalDate
+Passengers: ${numberOfPassengers ?? 1}
+Price: \$${price.toStringAsFixed(0)}
+Status: ${status ?? 'Unknown'}
+Passenger Names: ${passengerNames?.join(', ') ?? 'Not provided'}
+Ticket ID: ${ticketId ?? 'Not provided'}
+''';
+    Share.share(ticketDetails, subject: 'Train Ticket Details');
+  }
+
+  // Placeholder for downloading PDF
+  void _downloadPdf(BuildContext context) {
+    // In a real app, this would generate and download a PDF
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('PDF download feature not implemented yet')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final passengerId = _generatePassengerId();
-    final ticketNumber = _generateTicketNumber();
+    String userId = Get.find<HiveController>().getUserIdSync();
 
     return Scaffold(
       backgroundColor: TColors.bg,
       appBar: AppBar(title: const Text('Boarding Pass')),
       body: Padding(
         padding: const EdgeInsets.all(TSizes.defaultSpace),
-        child: Container(
-          padding: const EdgeInsets.all(TSizes.defaultSpace),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Text(
-                '$departureCity → $arrivalCity',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 8.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        departureTime,
-                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: TColors.primary,
-                        ),
-                      ),
-                      Text(
-                        departureDate,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        arrivalTime,
-                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: TColors.primary,
-                        ),
-                      ),
-                      Text(
-                        arrivalDate,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16.0),
-
-              // Passenger Details
-              Text('Passenger', style: Theme.of(context).textTheme.bodyMedium),
-              Text('1 Adult', style: Theme.of(context).textTheme.bodySmall),
-              const SizedBox(height: 8.0),
-              Text(
-                'Passenger ID',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(passengerId, style: Theme.of(context).textTheme.bodyLarge),
-              const SizedBox(height: 8.0),
-
-              Text(
-                'Ticket Number',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(ticketNumber, style: Theme.of(context).textTheme.bodyLarge),
-
-              // Barcode Placeholder
-              const SizedBox(height: 16.0),
-              // Download Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('Download Ticket'),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              vertical: TSizes.defaultSpace * 2,
+              horizontal: TSizes.defaultSpace,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Text(
+                  '$departureCity → $arrivalCity',
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
-              ),
-            ],
+                const SizedBox(height: TSizes.sm),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          departureTime.isNotEmpty ? departureTime : 'Not set',
+                          style: Theme.of(context).textTheme.titleLarge!
+                              .copyWith(color: TColors.primary),
+                        ),
+                        Text(
+                          departureDate.isNotEmpty ? departureDate : 'Not set',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          arrivalTime.isNotEmpty ? arrivalTime : 'Not set',
+                          style: Theme.of(context).textTheme.titleLarge!
+                              .copyWith(color: TColors.primary),
+                        ),
+                        Text(
+                          arrivalDate.isNotEmpty ? arrivalDate : 'Not set',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: TSizes.md),
+
+                // Ticket Details
+                Text(
+                  'Ticket Number',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  ticketId ?? "",
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                const SizedBox(height: TSizes.sm),
+
+                Text(
+                  'Passenger ID',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(userId, style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(height: TSizes.sm),
+
+                Text(
+                  'Passengers',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                Text(
+                  '${numberOfPassengers ?? 1} Adult${(numberOfPassengers ?? 1) > 1 ? 's' : ''}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: TSizes.sm),
+
+                if (passengerNames != null && passengerNames!.isNotEmpty) ...[
+                  Text(
+                    'Passenger Names',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  Text(
+                    passengerNames!.join(', '),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: TSizes.sm),
+                ],
+
+                Text('Price', style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  '\$${price.toStringAsFixed(0)}',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge!.copyWith(color: TColors.primary),
+                ),
+                const SizedBox(height: TSizes.sm),
+
+                if (status != null) ...[
+                  Text('Status', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(status!, style: Theme.of(context).textTheme.bodyLarge),
+                  const SizedBox(height: TSizes.sm),
+                ],
+
+                if (ticketId != null) ...[
+                  Text(
+                    'Train ID',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  Text(ticketId!, style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: TSizes.sm),
+                ],
+                SizedBox(height: TSizes.spaceBtwItems),
+                // Action Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _shareTicket,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TColors.primary,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Share Ticket'),
+                      ),
+                    ),
+                    const SizedBox(width: TSizes.sm),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => _downloadPdf(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TColors.primary,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Download PDF'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

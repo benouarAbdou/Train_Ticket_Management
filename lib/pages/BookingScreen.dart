@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:train_app/controllers/FirebaseController.dart';
+import 'package:train_app/controllers/HiveController.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 
@@ -11,7 +12,7 @@ class BookingScreen extends StatefulWidget {
   final String arrivalTime;
   final String departureDate;
   final String arrivalDate;
-  final double price; // Change this to double
+  final double price;
   final int seatsLeft;
   final int numberOfPassengers;
 
@@ -23,7 +24,7 @@ class BookingScreen extends StatefulWidget {
     required this.arrivalTime,
     required this.departureDate,
     required this.arrivalDate,
-    required this.price, // Change this to double
+    required this.price,
     required this.seatsLeft,
     required this.numberOfPassengers,
   });
@@ -35,6 +36,9 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen> {
   List<TextEditingController> nameControllers = [TextEditingController()];
   TextEditingController passengersController = TextEditingController();
+
+  final FirebaseController firebaseController = Get.find<FirebaseController>();
+  final HiveController hiveController = Get.find<HiveController>();
 
   late int numberOfPassengers;
 
@@ -54,6 +58,7 @@ class _BookingScreenState extends State<BookingScreen> {
     for (var controller in nameControllers) {
       controller.dispose();
     }
+    passengersController.dispose();
     super.dispose();
   }
 
@@ -82,7 +87,6 @@ class _BookingScreenState extends State<BookingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Text(
               '${widget.departureCity} → ${widget.arrivalCity}',
               style: Theme.of(context).textTheme.headlineSmall,
@@ -124,8 +128,6 @@ class _BookingScreenState extends State<BookingScreen> {
               ],
             ),
             const SizedBox(height: 16.0),
-
-            // Number of passengers
             TextField(
               controller: passengersController,
               keyboardType: TextInputType.number,
@@ -143,8 +145,6 @@ class _BookingScreenState extends State<BookingScreen> {
               },
             ),
             const SizedBox(height: 16.0),
-
-            // Passenger name fields
             ...List.generate(
               numberOfPassengers,
               (index) => Padding(
@@ -159,34 +159,30 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             const SizedBox(height: 16.0),
-
-            // Price information
             Text(
-              'Price per ticket: \$${widget.price}',
+              'Price per ticket: \$${widget.price.toStringAsFixed(0)}',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             Text(
-              'Total: \$${(widget.price * numberOfPassengers).toStringAsFixed(2)}', // Use double and format the total price
+              'Total: \$${(widget.price * numberOfPassengers).toStringAsFixed(0)}',
               style: Theme.of(
                 context,
               ).textTheme.titleLarge!.copyWith(color: TColors.primary),
             ),
             const SizedBox(height: 24.0),
-
-            // Book button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  print("Button pressed"); // Debugging print
+                  print("Button pressed");
 
-                  // Get passenger names from controllers
+                  String userId = await hiveController.getUserId();
+
                   List<String> passengerNames =
                       nameControllers
                           .map((controller) => controller.text.trim())
                           .toList();
 
-                  // Validate all names are provided
                   if (passengerNames.any((name) => name.isEmpty)) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -196,33 +192,68 @@ class _BookingScreenState extends State<BookingScreen> {
                     return;
                   }
 
-                  // Get FirebaseController instance
-                  final FirebaseController firebaseController =
-                      Get.find<FirebaseController>();
+                  // Create booking data map with all required fields
+                  Map<String, dynamic> bookingData = {
+                    'trainId': 'KmbvZVlX3rS2XhspIyzA',
+                    'departureCity': widget.departureCity,
+                    'arrivalCity': widget.arrivalCity,
+                    'departureTime': widget.departureTime,
+                    'arrivalTime': widget.arrivalTime,
+                    'departureDate': widget.departureDate,
+                    'arrivalDate': widget.arrivalDate,
+                    'passengers': numberOfPassengers,
+                    'userId': userId,
+                    'passengerNames': passengerNames,
+                    'price': widget.price * numberOfPassengers,
+                    'timestamp': DateTime.now().toIso8601String(),
+                    'status': 'pending',
+                  };
 
-                  // Attempt to book the ticket
-                  bool result = await firebaseController.bookTicket(
-                    trainId: 'KmbvZVlX3rS2XhspIyzA',
-                    departureCity: widget.departureCity,
-                    arrivalCity: widget.arrivalCity,
-                    passengers: numberOfPassengers,
-                    userId: "dq",
-                    passengerNames: passengerNames,
-                  );
+                  try {
+                    bool result = await firebaseController.bookTicket(
+                      trainId: bookingData['trainId'],
+                      departureCity: bookingData['departureCity'],
+                      arrivalCity: bookingData['arrivalCity'],
+                      passengers: bookingData['passengers'],
+                      userId: bookingData['userId'],
+                      passengerNames: bookingData['passengerNames'],
+                      departureTime: bookingData['departureTime'],
+                      arrivalTime: bookingData['arrivalTime'],
+                      departureDate: bookingData['departureDate'],
+                      arrivalDate: bookingData['arrivalDate'],
+                    );
 
-                  if (result) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Booking confirmed!')),
+                    if (result) {
+                      bookingData['status'] = 'confirmed';
+                      await hiveController.saveBookingLocally(bookingData);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Booking confirmed!')),
+                      );
+                      Navigator.pop(context);
+                    } else {
+                      bookingData['status'] = 'failed';
+                      await hiveController.saveBookingLocally(bookingData);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Failed to book ticket')),
+                      );
+                    }
+
+                    print('Booking result: $result');
+                    print(
+                      'Booking saved locally with status: ${bookingData['status']}',
                     );
-                    // Optionally navigate back or to a confirmation screen
-                    Navigator.pop(context);
-                  } else {
+                  } catch (e) {
+                    bookingData['status'] = 'error';
+                    bookingData['errorMessage'] = e.toString();
+                    await hiveController.saveBookingLocally(bookingData);
+
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Failed to book ticket')),
+                      SnackBar(content: Text('Error booking ticket: $e')),
                     );
+                    print('Booking error: $e');
                   }
-
-                  print('Booking result: $result'); // Debugging print
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: TSizes.lg),

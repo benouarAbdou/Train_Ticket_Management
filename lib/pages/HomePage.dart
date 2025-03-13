@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get.dart';
 import 'package:train_app/controllers/FirebaseController.dart';
+import 'package:train_app/pages/BookingScreen.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 import 'package:train_app/widgets/TrainTicket.dart';
@@ -215,6 +216,25 @@ class _MyHomePageState extends State<MyHomePage> {
                               price: train['price'],
                               numberOfPassengers:
                                   int.tryParse(_passengersController.text) ?? 1,
+                              onTap: () {
+                                Get.to(
+                                  () => BookingScreen(
+                                    departureCity: train['departureCity'],
+                                    arrivalCity: train['arrivalCity'],
+                                    departureTime: train['departureTime'],
+                                    arrivalTime: train['arrivalTime'],
+                                    departureDate: train['departureDate'],
+                                    arrivalDate: train['arrivalDate'],
+                                    price: train['price'],
+                                    seatsLeft: train['seatsLeft'],
+                                    numberOfPassengers:
+                                        int.tryParse(
+                                          _passengersController.text,
+                                        ) ??
+                                        1,
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),
