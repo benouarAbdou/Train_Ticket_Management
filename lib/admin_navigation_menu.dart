@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:train_app/controllers/FirebaseAdminController.dart';
+import 'package:train_app/pages/TicketVerificationPage.dart';
 import 'package:train_app/utils/constants/colors.dart';
 
 class AdminNavigationMenu extends StatelessWidget {
@@ -35,11 +36,8 @@ class AdminNavigationMenu extends StatelessWidget {
           onDestinationSelected:
               (value) => controller.selectedIndex.value = value,
           destinations: const [
-            NavigationDestination(
-              icon: Icon(Iconsax.user_octagon),
-              label: "Users",
-            ),
             NavigationDestination(icon: Icon(Iconsax.ticket), label: "Tickets"),
+            NavigationDestination(icon: Icon(Icons.train), label: "Trains"),
             NavigationDestination(
               icon: Icon(Iconsax.chart),
               label: "Analytics",
@@ -56,15 +54,7 @@ class AdminNavigationController extends GetxController {
   final Rx<int> selectedIndex = 0.obs;
 
   final screens = [
-    Container(
-      color: Colors.blue,
-      child: const Center(
-        child: Text(
-          'Users Management',
-          style: TextStyle(color: Colors.white, fontSize: 24),
-        ),
-      ),
-    ),
+    TicketVerificationPage(),
     Container(
       color: Colors.green,
       child: const Center(

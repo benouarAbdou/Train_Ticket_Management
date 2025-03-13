@@ -27,6 +27,7 @@ class FirebaseAdminController extends GetxController {
   }
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
   Future<void> addStation(String name, Map<String, int> distances) async {
     if (!(await isAdmin())) throw Exception('Not authorized');
     await _firestore.collection('stations').doc(name).set({
@@ -132,5 +133,73 @@ class FirebaseAdminController extends GetxController {
     await _auth.signOut();
     await hiveController.saveAdminLoginStatus(false);
     isAdminLoggedIn.value = false;
+  }
+
+  // Modified verifyTicket with arguments
+  Future<Map<String, dynamic>?> verifyTicket({
+    required String ticketId,
+    required Function(String) onError,
+    required Function(bool) onLoading,
+  }) async {
+    if (ticketId.isEmpty) {
+      onError('Please enter a ticket ID');
+      return null;
+    }
+
+    onLoading(true);
+
+    try {
+      final DocumentSnapshot ticket =
+          await _firestore.collection('bookings').doc(ticketId.trim()).get();
+
+      if (!ticket.exists) {
+        throw Exception('Ticket not found');
+      }
+
+      return ticket.data() as Map<String, dynamic>;
+    } catch (e) {
+      onError(e.toString());
+      return null;
+    } finally {
+      onLoading(false);
+    }
+  }
+
+  // New markTicketAsUsed function
+  Future<void> markTicketAsUsed({
+    required String ticketId,
+    required Function(String) onError,
+    required Function(bool) onLoading,
+    required Function(String) onSuccess,
+  }) async {
+    onLoading(true);
+
+    try {
+      final ticketRef = _firestore.collection('bookings').doc(ticketId.trim());
+      final ticketSnapshot = await ticketRef.get();
+
+      if (!ticketSnapshot.exists) {
+        throw Exception('Ticket not found');
+      }
+
+      final ticketData = ticketSnapshot.data() as Map<String, dynamic>;
+      if (ticketData['status'] == 'used') {
+        throw Exception('Ticket already marked as used');
+      }
+
+      await ticketRef.update({
+        'status': 'used',
+        'usedAt': DateTime.now().toIso8601String(),
+        'verifiedBy': _firestore
+            .collection('admins')
+            .doc(_auth.currentUser?.uid),
+      });
+
+      onSuccess('Ticket marked as used');
+    } catch (e) {
+      onError('Error marking ticket as used: ${e.toString()}');
+    } finally {
+      onLoading(false);
+    }
   }
 }
