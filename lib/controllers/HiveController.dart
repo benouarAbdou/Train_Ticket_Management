@@ -66,25 +66,39 @@ class HiveController extends GetxController {
   // Save a booking ticket locally
   Future<void> saveBookingLocally(Map<String, dynamic> booking) async {
     await _ensureInitialized();
-    String bookingId = uuid.v4();
-    booking['localId'] = bookingId;
+
+    // Get the cloud booking ID from the booking data
+    final String bookingId = booking['id'] ?? '';
+
+    if (bookingId.isEmpty) {
+      debugPrint(
+        'HiveController: Warning - Attempting to save booking without ID',
+      );
+      return;
+    }
+
     debugPrint('HiveController: Saving booking with ID: $bookingId');
-    await _bookingBox.put(bookingId, booking);
-    debugPrint('HiveController: Booking saved successfully');
+
+    try {
+      await _bookingBox.put(bookingId, booking);
+      debugPrint('HiveController: Booking saved successfully');
+    } catch (e) {
+      debugPrint('HiveController: Error saving booking - $e');
+      rethrow;
+    }
   }
 
   // Get all locally saved bookings
   Future<List<Map<String, dynamic>>> getLocalBookings() async {
     await _ensureInitialized();
-    debugPrint('HiveController: Retrieving all bookings');
-    List<Map<String, dynamic>> bookings = [];
-    for (var key in _bookingBox.keys) {
-      var booking = _bookingBox.get(key);
-      bookings.add(booking);
-      debugPrint('HiveController: Found booking with key: $key');
+    try {
+      return _bookingBox.values
+          .map((booking) => Map<String, dynamic>.from(booking))
+          .toList();
+    } catch (e) {
+      debugPrint('HiveController: Error getting local bookings - $e');
+      return [];
     }
-    debugPrint('HiveController: Total bookings retrieved: ${bookings.length}');
-    return bookings;
   }
 
   // Get a specific booking by local ID

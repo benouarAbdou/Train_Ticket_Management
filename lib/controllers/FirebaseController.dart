@@ -29,31 +29,6 @@ class FirebaseController extends GetxController {
   }
 
   // Authentication methods
-  Future<UserCredential> signIn(String email, String password) async {
-    try {
-      return await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    } catch (e) {
-      throw Exception('Failed to sign in: $e');
-    }
-  }
-
-  Future<UserCredential> signUp(String email, String password) async {
-    try {
-      return await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    } catch (e) {
-      throw Exception('Failed to sign up: $e');
-    }
-  }
-
-  Future<void> signOut() async {
-    await _auth.signOut();
-  }
 
   Future<bool> isAdmin() async {
     final user = _auth.currentUser;

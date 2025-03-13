@@ -9,6 +9,7 @@ import 'package:train_app/controllers/FirebaseController.dart';
 import 'package:train_app/controllers/HiveController.dart';
 import 'package:train_app/firebase_options.dart';
 import 'package:train_app/navigation_menu.dart';
+import 'package:train_app/utils/services/ConnectivityService.dart';
 import 'package:train_app/utils/theme/theme.dart';
 
 void main() async {
@@ -20,6 +21,9 @@ void main() async {
   Get.put(FirebaseController());
   Get.put(HiveController());
   Get.put(FirebaseAdminController());
+
+  // Initialize ConnectivityService
+  await Get.putAsync(() async => ConnectivityService());
 
   runApp(const MyApp());
 }
