@@ -99,4 +99,21 @@ class FirebaseAdminController extends GetxController {
     if (isActive != null) updates['isActive'] = isActive;
     await _firestore.collection('trains').doc(trainId).update(updates);
   }
+
+  Future<UserCredential> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    try {
+      final UserCredential userCredential = await _auth
+          .signInWithEmailAndPassword(email: email, password: password);
+      return userCredential;
+    } catch (e) {
+      throw 'Failed to sign in: ${e.toString()}';
+    }
+  }
+
+  Future<void> signOut() async {
+    await _auth.signOut();
+  }
 }

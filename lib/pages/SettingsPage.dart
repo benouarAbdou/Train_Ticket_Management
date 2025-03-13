@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:train_app/controllers/HiveController.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
+import 'package:train_app/pages/AdminLoginPage.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -71,14 +72,8 @@ class SettingsScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Add your admin login logic here
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Admin login not implemented yet'),
-                    ),
-                  );
+                  Get.to(() => const AdminLoginPage());
                 },
-
                 child: const Text('Login as Admin'),
               ),
             ),

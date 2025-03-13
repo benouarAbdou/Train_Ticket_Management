@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:train_app/controllers/FirebaseAdminController.dart';
 import 'package:train_app/controllers/FirebaseController.dart';
 import 'package:train_app/controllers/HiveController.dart';
 import 'package:train_app/firebase_options.dart';
@@ -15,6 +16,7 @@ void main() async {
   // Don't open boxes here, let HiveController handle it
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Get.put(FirebaseController());
+  Get.put(FirebaseAdminController());
   Get.put(HiveController()); // Controller will handle box initialization
   runApp(const MyApp());
 }
@@ -29,6 +31,7 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       theme: Train_appTheme.lightTheme,
       darkTheme: Train_appTheme.darkTheme,
+      debugShowCheckedModeBanner: false,
       home: const NavigationMenu(),
     );
   }
