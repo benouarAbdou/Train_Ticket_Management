@@ -10,6 +10,7 @@ import 'package:train_app/firebase_options.dart';
 import 'package:train_app/navigation_menu.dart';
 import 'package:train_app/admin_navigation_menu.dart';
 import 'package:train_app/utils/services/ConnectivityService.dart';
+import 'package:train_app/utils/services/NotificationsService.dart';
 import 'package:train_app/utils/theme/theme.dart';
 
 void main() {
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
     Get.put(HiveController());
     Get.put(FirebaseController());
     Get.put(FirebaseAdminController()); // Ensure this is registered here
+    Get.put(NotificationService()); // Add this line
     await Get.putAsync(() async => ConnectivityService());
   }
 

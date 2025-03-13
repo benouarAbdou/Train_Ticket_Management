@@ -4,6 +4,7 @@ import 'package:train_app/controllers/FirebaseController.dart';
 import 'package:train_app/controllers/HiveController.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
+import 'package:train_app/utils/services/NotificationsService.dart';
 
 class BookingScreen extends StatefulWidget {
   final String departureCity;
@@ -242,6 +243,18 @@ class _BookingScreenState extends State<BookingScreen> {
                     }
 
                     if (bookingResults.every((result) => result)) {
+                      final NotificationService notificationService =
+                          Get.find<NotificationService>();
+
+                      // Schedule notification for the trip
+                      await notificationService.scheduleTicketNotification(
+                        trainId: widget.trainId,
+                        departureCity: widget.departureCity,
+                        arrivalCity: widget.arrivalCity,
+                        departureTime: widget.departureTime,
+                        departureDate: widget.departureDate,
+                      );
+
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('All bookings confirmed!'),
