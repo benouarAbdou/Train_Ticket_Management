@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'dart:math';
-import 'package:share_plus/share_plus.dart'; // For sharing functionality
+
+import 'package:share_plus/share_plus.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
-
+import 'package:train_app/utils/services/PdfServices.dart';
 import '../controllers/HiveController.dart';
 
 class TicketDetailsScreen extends StatelessWidget {
@@ -15,10 +15,10 @@ class TicketDetailsScreen extends StatelessWidget {
   final String departureDate;
   final String arrivalDate;
   final double price;
-  final int? numberOfPassengers; // Optional, from booking
-  final String? status; // Optional, from booking
-  final List<String>? passengerNames; // Optional, from booking
-  final String? ticketId; // Optional, from booking
+  final int? numberOfPassengers;
+  final String? status;
+  final List<String>? passengerNames;
+  final String? ticketId;
 
   const TicketDetailsScreen({
     super.key,
@@ -35,10 +35,6 @@ class TicketDetailsScreen extends StatelessWidget {
     this.ticketId,
   });
 
-  // Generate a random passenger ID (e.g., 6-digit number)
-
-  // Generate ticket number with "TRA" prefix
-
   // Share ticket details
   void _shareTicket() {
     final ticketDetails = '''
@@ -53,13 +49,7 @@ Ticket ID: ${ticketId ?? 'Not provided'}
     Share.share(ticketDetails, subject: 'Train Ticket Details');
   }
 
-  // Placeholder for downloading PDF
-  void _downloadPdf(BuildContext context) {
-    // In a real app, this would generate and download a PDF
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('PDF download feature not implemented yet')),
-    );
-  }
+  // Generate and view PDF
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +74,6 @@ Ticket ID: ${ticketId ?? 'Not provided'}
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
                 Text(
                   '$departureCity → $arrivalCity',
                   style: Theme.of(context).textTheme.headlineSmall,
@@ -124,8 +113,6 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                   ],
                 ),
                 const SizedBox(height: TSizes.md),
-
-                // Ticket Details
                 Text(
                   'Ticket Number',
                   style: Theme.of(context).textTheme.bodyMedium,
@@ -135,14 +122,12 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 const SizedBox(height: TSizes.sm),
-
                 Text(
                   'Passenger ID',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Text(userId, style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: TSizes.sm),
-
                 Text(
                   'Passengers',
                   style: Theme.of(context).textTheme.bodyMedium,
@@ -152,7 +137,6 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: TSizes.sm),
-
                 if (passengerNames != null && passengerNames!.isNotEmpty) ...[
                   Text(
                     'Passenger Names',
@@ -164,7 +148,6 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                   ),
                   const SizedBox(height: TSizes.sm),
                 ],
-
                 Text('Price', style: Theme.of(context).textTheme.bodyMedium),
                 Text(
                   '\$${price.toStringAsFixed(0)}',
@@ -173,23 +156,12 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                   ).textTheme.bodyLarge!.copyWith(color: TColors.primary),
                 ),
                 const SizedBox(height: TSizes.sm),
-
                 if (status != null) ...[
                   Text('Status', style: Theme.of(context).textTheme.bodyMedium),
                   Text(status!, style: Theme.of(context).textTheme.bodyLarge),
                   const SizedBox(height: TSizes.sm),
                 ],
-
-                if (ticketId != null) ...[
-                  Text(
-                    'Train ID',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  Text(ticketId!, style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: TSizes.sm),
-                ],
                 SizedBox(height: TSizes.spaceBtwItems),
-                // Action Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -206,7 +178,21 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                     const SizedBox(width: TSizes.sm),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => _downloadPdf(context),
+                        onPressed:
+                            () => generateAndOpenTicketPdf(
+                              context: context,
+                              departureCity: departureCity,
+                              arrivalCity: arrivalCity,
+                              departureTime: departureTime,
+                              arrivalTime: arrivalTime,
+                              departureDate: departureDate,
+                              arrivalDate: arrivalDate,
+                              price: price,
+                              numberOfPassengers: numberOfPassengers,
+                              status: status,
+                              passengerNames: passengerNames,
+                              ticketId: ticketId,
+                            ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: TColors.primary,
                           foregroundColor: Colors.white,

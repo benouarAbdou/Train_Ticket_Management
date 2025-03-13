@@ -135,16 +135,16 @@ class FirebaseController extends GetxController {
     required String trainId,
     required String departureCity,
     required String arrivalCity,
-    required int passengers,
+    required int passengers, // Will always be 1 in this case
     required String userId,
     required String departureTime,
     required String arrivalTime,
     required String departureDate,
     required String arrivalDate,
-    required List<String> passengerNames,
+    required List<String> passengerNames, // Will contain one name
   }) async {
     try {
-      print("Starting booking process"); // Debugging print
+      print("Starting booking process for ${passengerNames[0]}");
       return await _firestore.runTransaction<bool>((transaction) async {
         DocumentReference trainRef = _firestore
             .collection('trains')
@@ -153,49 +153,50 @@ class FirebaseController extends GetxController {
 
         if (!trainSnapshot.exists ||
             !(trainSnapshot.data() as Map<String, dynamic>)['isActive']) {
-          print("Train does not exist or is not active"); // Debugging print
+          print("Train does not exist or is not active");
           return false;
         }
 
         final trainData = trainSnapshot.data() as Map<String, dynamic>;
         final int seatsLeft = trainData['seatsLeft'];
 
-        if (seatsLeft < passengers) {
-          print("Not enough seats left"); // Debugging print
+        if (seatsLeft < 1) {
+          // Check for single seat since passengers is always 1
+          print("Not enough seats left");
           return false;
         }
 
-        if (passengerNames.length != passengers) {
-          print(
-            "Passenger names do not match the number of passengers",
-          ); // Debugging print
+        if (passengerNames.length != 1) {
+          print("Invalid number of passenger names for single booking");
           return false;
         }
 
-        transaction.update(trainRef, {'seatsLeft': seatsLeft - passengers});
+        // Update seats left (decrement by 1)
+        transaction.update(trainRef, {'seatsLeft': seatsLeft - 1});
 
+        // Create individual booking
         DocumentReference bookingRef = _firestore.collection('bookings').doc();
         transaction.set(bookingRef, {
           'userId': userId,
           'trainId': trainId,
           'departureCity': departureCity,
           'arrivalCity': arrivalCity,
-          'departureTime': departureTime, // Added
-          'arrivalTime': arrivalTime, // Added
-          'departureDate': departureDate, // Added
-          'arrivalDate': arrivalDate, // Added
-          'passengers': passengers,
-          'passengerNames': passengerNames,
+          'departureTime': departureTime,
+          'arrivalTime': arrivalTime,
+          'departureDate': departureDate,
+          'arrivalDate': arrivalDate,
+          'passengers': 1,
+          'passengerNames': passengerNames, // Single name array
           'bookingDate': DateTime.now().toIso8601String(),
           'status': 'confirmed',
-          'price': trainData['pricePerPassenger'] * passengers,
+          'price': trainData['pricePerPassenger'],
         });
 
-        print('Booking successful'); // Debugging print
+        print('Booking successful for ${passengerNames[0]}');
         return true;
       });
     } catch (e) {
-      print('Error booking ticket: $e'); // Debugging print
+      print('Error booking ticket for ${passengerNames[0]}: $e');
       return false;
     }
   }

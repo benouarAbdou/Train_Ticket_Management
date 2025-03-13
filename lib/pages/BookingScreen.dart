@@ -177,7 +177,6 @@ class _BookingScreenState extends State<BookingScreen> {
                   print("Button pressed");
 
                   String userId = await hiveController.getUserId();
-
                   List<String> passengerNames =
                       nameControllers
                           .map((controller) => controller.text.trim())
@@ -192,65 +191,75 @@ class _BookingScreenState extends State<BookingScreen> {
                     return;
                   }
 
-                  // Create booking data map with all required fields
-                  Map<String, dynamic> bookingData = {
-                    'trainId': 'KmbvZVlX3rS2XhspIyzA',
-                    'departureCity': widget.departureCity,
-                    'arrivalCity': widget.arrivalCity,
-                    'departureTime': widget.departureTime,
-                    'arrivalTime': widget.arrivalTime,
-                    'departureDate': widget.departureDate,
-                    'arrivalDate': widget.arrivalDate,
-                    'passengers': numberOfPassengers,
-                    'userId': userId,
-                    'passengerNames': passengerNames,
-                    'price': widget.price * numberOfPassengers,
-                    'timestamp': DateTime.now().toIso8601String(),
-                    'status': 'pending',
-                  };
-
                   try {
-                    bool result = await firebaseController.bookTicket(
-                      trainId: bookingData['trainId'],
-                      departureCity: bookingData['departureCity'],
-                      arrivalCity: bookingData['arrivalCity'],
-                      passengers: bookingData['passengers'],
-                      userId: bookingData['userId'],
-                      passengerNames: bookingData['passengerNames'],
-                      departureTime: bookingData['departureTime'],
-                      arrivalTime: bookingData['arrivalTime'],
-                      departureDate: bookingData['departureDate'],
-                      arrivalDate: bookingData['arrivalDate'],
-                    );
+                    // List to store all booking results
+                    List<bool> bookingResults = [];
+                    List<Map<String, dynamic>> bookingDataList = [];
 
-                    if (result) {
-                      bookingData['status'] = 'confirmed';
+                    // Create individual bookings for each passenger
+                    for (int i = 0; i < numberOfPassengers; i++) {
+                      Map<String, dynamic> bookingData = {
+                        'trainId': 'KmbvZVlX3rS2XhspIyzA',
+                        'departureCity': widget.departureCity,
+                        'arrivalCity': widget.arrivalCity,
+                        'departureTime': widget.departureTime,
+                        'arrivalTime': widget.arrivalTime,
+                        'departureDate': widget.departureDate,
+                        'arrivalDate': widget.arrivalDate,
+                        'passengers': 1, // Each booking is for one passenger
+                        'userId': userId,
+                        'passengerNames': [
+                          passengerNames[i],
+                        ], // Single passenger name
+                        'price': widget.price,
+                        'timestamp': DateTime.now().toIso8601String(),
+                        'status': 'pending',
+                      };
+
+                      bool result = await firebaseController.bookTicket(
+                        trainId: bookingData['trainId'],
+                        departureCity: bookingData['departureCity'],
+                        arrivalCity: bookingData['arrivalCity'],
+                        passengers: 1, // One passenger per booking
+                        userId: bookingData['userId'],
+                        passengerNames: [passengerNames[i]],
+                        departureTime: bookingData['departureTime'],
+                        arrivalTime: bookingData['arrivalTime'],
+                        departureDate: bookingData['departureDate'],
+                        arrivalDate: bookingData['arrivalDate'],
+                      );
+
+                      bookingResults.add(result);
+                      bookingData['status'] = result ? 'confirmed' : 'failed';
+                      bookingDataList.add(bookingData);
+                    }
+
+                    // Save all bookings locally
+                    for (var bookingData in bookingDataList) {
                       await hiveController.saveBookingLocally(bookingData);
+                    }
 
+                    if (bookingResults.every((result) => result)) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Booking confirmed!')),
+                        const SnackBar(
+                          content: Text('All bookings confirmed!'),
+                        ),
                       );
                       Navigator.pop(context);
                     } else {
-                      bookingData['status'] = 'failed';
-                      await hiveController.saveBookingLocally(bookingData);
-
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Failed to book ticket')),
+                        const SnackBar(
+                          content: Text(
+                            'Some bookings failed. Please check your bookings',
+                          ),
+                        ),
                       );
                     }
 
-                    print('Booking result: $result');
-                    print(
-                      'Booking saved locally with status: ${bookingData['status']}',
-                    );
+                    print('Booking results: $bookingResults');
                   } catch (e) {
-                    bookingData['status'] = 'error';
-                    bookingData['errorMessage'] = e.toString();
-                    await hiveController.saveBookingLocally(bookingData);
-
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error booking ticket: $e')),
+                      SnackBar(content: Text('Error booking tickets: $e')),
                     );
                     print('Booking error: $e');
                   }
