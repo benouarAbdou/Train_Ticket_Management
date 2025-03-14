@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get.dart';
 import 'package:train_app/controllers/FirebaseController.dart';
-import 'package:train_app/pages/BookingScreen.dart';
+import 'package:train_app/pages/client/BookingScreen.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 import 'package:train_app/widgets/TrainTicket.dart';

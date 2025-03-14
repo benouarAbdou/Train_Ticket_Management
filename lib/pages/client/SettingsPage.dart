@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:train_app/controllers/HiveController.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
-import 'package:train_app/pages/AdminLoginPage.dart';
+import 'package:train_app/pages/client/AdminLoginPage.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});

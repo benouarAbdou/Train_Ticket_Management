@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:train_app/controllers/FirebaseAdminController.dart';
-import 'package:train_app/pages/TicketVerificationPage.dart';
+import 'package:train_app/pages/admin/RoutesAdminPage.dart';
+import 'package:train_app/pages/admin/TicketVerificationPage.dart';
 import 'package:train_app/pages/admin/DestinationManagementPage.dart';
-import 'package:train_app/pages/admin/TrainManagementPage.dart';
+import 'package:train_app/pages/admin/train/TrainAdminPage.dart';
 import 'package:train_app/utils/constants/colors.dart';
 
 class AdminNavigationMenu extends StatelessWidget {
@@ -43,6 +44,7 @@ class AdminNavigationMenu extends StatelessWidget {
               icon: Icon(Iconsax.building),
               label: "Stations",
             ),
+            NavigationDestination(icon: Icon(Icons.route), label: "Routes"),
             NavigationDestination(icon: Icon(Icons.train), label: "Trains"),
           ],
         ),
@@ -58,6 +60,7 @@ class AdminNavigationController extends GetxController {
   final screens = [
     TicketVerificationPage(),
     DestinationManagementPage(),
-    TrainManagementPage(),
+    RoutesAdminPage(),
+    TrainAdminPage(),
   ];
 }

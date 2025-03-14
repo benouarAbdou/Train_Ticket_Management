@@ -1,10 +1,10 @@
-import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:train_app/controllers/HiveController.dart';
 
 class FirebaseAdminController extends GetxController {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final RxBool isAdminLoggedIn = false.obs;
   final HiveController hiveController = Get.find<HiveController>();
 
@@ -29,8 +29,7 @@ class FirebaseAdminController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> addStation(String name, Map<String, int> distances) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    await _firestore.collection('stations').doc(name).set({
+    await firestore.collection('stations').doc(name).set({
       'name': name,
       'isActive': true,
       'distances': distances,
@@ -42,24 +41,21 @@ class FirebaseAdminController extends GetxController {
     Map<String, int>? distances,
     bool? isActive,
   }) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
     final updates = <String, dynamic>{};
     if (distances != null) updates['distances'] = distances;
     if (isActive != null) updates['isActive'] = isActive;
-    await _firestore.collection('stations').doc(name).update(updates);
+    await firestore.collection('stations').doc(name).update(updates);
   }
 
   Future<void> toggleStationActive(String name, bool isActive) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    await _firestore.collection('stations').doc(name).update({
+    await firestore.collection('stations').doc(name).update({
       'isActive': isActive,
     });
   }
 
   // Admin: Train Management
   Future<void> createRoute(String name, List<String> stationIds) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    await _firestore.collection('routes').add({
+    await firestore.collection('routes').add({
       'name': name,
       'stationIds': stationIds,
       'isActive': true,
@@ -71,11 +67,10 @@ class FirebaseAdminController extends GetxController {
     List<String>? stationIds,
     bool? isActive,
   }) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
     final updates = <String, dynamic>{};
     if (stationIds != null) updates['stationIds'] = stationIds;
     if (isActive != null) updates['isActive'] = isActive;
-    await _firestore.collection('routes').doc(routeId).update(updates);
+    await firestore.collection('routes').doc(routeId).update(updates);
   }
 
   Future<void> createTrain({
@@ -85,8 +80,7 @@ class FirebaseAdminController extends GetxController {
     required int seatsTotal,
     required double pricePerPassenger,
   }) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
-    await _firestore.collection('trains').add({
+    await firestore.collection('trains').add({
       'routeId': routeId,
       'date': date,
       'schedule': schedule,
@@ -104,14 +98,13 @@ class FirebaseAdminController extends GetxController {
     double? pricePerPassenger,
     bool? isActive,
   }) async {
-    if (!(await isAdmin())) throw Exception('Not authorized');
     final updates = <String, dynamic>{};
     if (schedule != null) updates['schedule'] = schedule;
     if (seatsTotal != null) updates['seatsTotal'] = seatsTotal;
     if (pricePerPassenger != null)
       updates['pricePerPassenger'] = pricePerPassenger;
     if (isActive != null) updates['isActive'] = isActive;
-    await _firestore.collection('trains').doc(trainId).update(updates);
+    await firestore.collection('trains').doc(trainId).update(updates);
   }
 
   Future<UserCredential> signInWithEmailAndPassword(
@@ -150,7 +143,7 @@ class FirebaseAdminController extends GetxController {
 
     try {
       final DocumentSnapshot ticket =
-          await _firestore.collection('bookings').doc(ticketId.trim()).get();
+          await firestore.collection('bookings').doc(ticketId.trim()).get();
 
       if (!ticket.exists) {
         throw Exception('Ticket not found');
@@ -175,7 +168,7 @@ class FirebaseAdminController extends GetxController {
     onLoading(true);
 
     try {
-      final ticketRef = _firestore.collection('bookings').doc(ticketId.trim());
+      final ticketRef = firestore.collection('bookings').doc(ticketId.trim());
       final ticketSnapshot = await ticketRef.get();
 
       if (!ticketSnapshot.exists) {
@@ -190,7 +183,7 @@ class FirebaseAdminController extends GetxController {
       await ticketRef.update({
         'status': 'used',
         'usedAt': DateTime.now().toIso8601String(),
-        'verifiedBy': _firestore
+        'verifiedBy': firestore
             .collection('admins')
             .doc(_auth.currentUser?.uid),
       });

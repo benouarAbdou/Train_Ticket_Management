@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:train_app/pages/HomePage.dart';
-import 'package:train_app/pages/MyTickets.dart';
-import 'package:train_app/pages/SettingsPage.dart';
+import 'package:train_app/pages/client/HomePage.dart';
+import 'package:train_app/pages/client/MyTickets.dart';
+import 'package:train_app/pages/client/SettingsPage.dart';
 import 'package:train_app/utils/constants/colors.dart';
 
 class NavigationMenu extends StatelessWidget {
