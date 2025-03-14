@@ -81,15 +81,22 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage Destinations')),
-      body: Column(
-        children: [
-          // Add New Station Form
-          Padding(
-            padding: const EdgeInsets.all(TSizes.defaultSpace),
-            child: Form(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+
+          children: [
+            const Text(
+              'Ticket verification',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: TSizes.spaceBtwItems),
+            // Add New Station Form
+            Form(
               key: _formKey,
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: TextFormField(
@@ -109,57 +116,60 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
                   const SizedBox(width: TSizes.spaceBtwItems),
                   ElevatedButton(
                     onPressed: _addNewStation,
-                    child: const Text('Add Station'),
+                    child: const Text('Add'),
                   ),
                 ],
               ),
             ),
-          ),
 
-          // Stations List
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance.collection('stations').snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+            // Stations List
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream:
+                    FirebaseFirestore.instance
+                        .collection('stations')
+                        .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                return ListView.builder(
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    final station = snapshot.data!.docs[index];
-                    final data = station.data() as Map<String, dynamic>;
-                    final isActive = data['isActive'] as bool;
+                  return ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      final station = snapshot.data!.docs[index];
+                      final data = station.data() as Map<String, dynamic>;
+                      final isActive = data['isActive'] as bool;
 
-                    return StationListTile(
-                      stationName: station.id,
-                      isActive: isActive,
-                      distances: data['distances'] as Map<String, dynamic>,
-                      onToggleActive: () async {
-                        await _adminController.toggleStationActive(
-                          station.id,
-                          !isActive,
-                        );
-                      },
-                      onEditDistances: () {
-                        _showDistanceDialog(
-                          station.id,
-                          data['distances'] as Map<String, dynamic>,
-                        );
-                      },
-                    );
-                  },
-                );
-              },
+                      return StationListTile(
+                        stationName: station.id,
+                        isActive: isActive,
+                        distances: data['distances'] as Map<String, dynamic>,
+                        onToggleActive: () async {
+                          await _adminController.toggleStationActive(
+                            station.id,
+                            !isActive,
+                          );
+                        },
+                        onEditDistances: () {
+                          _showDistanceDialog(
+                            station.id,
+                            data['distances'] as Map<String, dynamic>,
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

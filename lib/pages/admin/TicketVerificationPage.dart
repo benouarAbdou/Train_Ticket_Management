@@ -60,12 +60,16 @@ class _TicketVerificationPageState extends State<TicketVerificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ticket Verification')),
       body: Padding(
-        padding: const EdgeInsets.all(TSizes.defaultSpace),
+        padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const Text(
+              'Ticket verification',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: TSizes.spaceBtwItems),
             // Ticket ID Input
             TextField(
               controller: _ticketIdController,

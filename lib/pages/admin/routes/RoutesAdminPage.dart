@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:train_app/controllers/FirebaseAdminController.dart';
+import 'package:train_app/pages/admin/routes/AddRoutePage.dart';
+import 'package:train_app/pages/admin/routes/EditRoutePage.dart';
 
 class RoutesAdminPage extends StatelessWidget {
   final FirebaseAdminController adminController =
@@ -95,7 +97,7 @@ class CreateRoutePage extends StatelessWidget {
               decoration: const InputDecoration(labelText: 'Route Name'),
             ),
             const SizedBox(height: 16),
-            Expanded(child: _buildStationSelector(selectedStations)),
+            Expanded(child: buildStationSelector(selectedStations)),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -136,112 +138,7 @@ class CreateRoutePage extends StatelessWidget {
   }
 }
 
-class EditRoutePage extends StatelessWidget {
-  final String routeId;
-  final Map<String, dynamic> routeData;
-  final FirebaseAdminController adminController =
-      Get.find<FirebaseAdminController>();
-  late final TextEditingController nameController;
-  late final RxList<String> selectedStations;
-
-  EditRoutePage({super.key, required this.routeId, required this.routeData}) {
-    nameController = TextEditingController(text: routeData['name']);
-    selectedStations = List<String>.from(routeData['stationIds']).obs;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Edit Route')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Route Name'),
-            ),
-            const SizedBox(height: 16),
-            Expanded(child: _buildStationSelector(selectedStations)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Get.back(),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(onPressed: _saveRoute, child: const Text('Save')),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _saveRoute() async {
-    if (selectedStations.isEmpty) {
-      Get.snackbar('Error', 'Please select at least one station');
-      return;
-    }
-    try {
-      await adminController.editRoute(
-        routeId,
-        stationIds: selectedStations.toList(),
-      );
-      Get.back();
-      Get.snackbar('Success', 'Route updated successfully');
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to update route: $e');
-    }
-  }
-}
-
-class AddStationPage extends StatelessWidget {
-  final RxList<String> selectedStations;
-  final FirebaseAdminController adminController =
-      Get.find<FirebaseAdminController>();
-
-  AddStationPage({super.key, required this.selectedStations});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Add Station')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: adminController.firestore.collection('stations').snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData)
-            return const Center(child: CircularProgressIndicator());
-
-          final stations = snapshot.data!.docs;
-          final availableStations =
-              stations
-                  .where(
-                    (station) => !selectedStations.contains(station['name']),
-                  )
-                  .toList();
-
-          return ListView.builder(
-            itemCount: availableStations.length,
-            itemBuilder: (context, index) {
-              final station = availableStations[index];
-              return ListTile(
-                title: Text(station['name']),
-                onTap: () {
-                  selectedStations.add(station['name']);
-                  Get.back();
-                },
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-Widget _buildStationSelector(RxList<String> selectedStations) {
+Widget buildStationSelector(RxList<String> selectedStations) {
   final adminController = Get.find<FirebaseAdminController>();
 
   return StreamBuilder<QuerySnapshot>(

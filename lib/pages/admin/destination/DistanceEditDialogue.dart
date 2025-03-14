@@ -87,7 +87,7 @@ class _DistanceEditDialogState extends State<DistanceEditDialog> {
                         child: TextFormField(
                           controller: entry.value,
                           decoration: InputDecoration(
-                            labelText: 'Distance to ${entry.key} (km)',
+                            labelText: 'To ${entry.key} (km)',
                             border: const OutlineInputBorder(),
                           ),
                           keyboardType: TextInputType.number,

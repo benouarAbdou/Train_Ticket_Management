@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:train_app/controllers/FirebaseAdminController.dart';
-import 'package:train_app/pages/admin/RoutesAdminPage.dart';
+import 'package:train_app/pages/admin/routes/RoutesAdminPage.dart';
 import 'package:train_app/pages/admin/TicketVerificationPage.dart';
 import 'package:train_app/pages/admin/destination/DestinationManagementPage.dart';
 import 'package:train_app/pages/admin/train/TrainAdminPage.dart';
@@ -18,6 +18,7 @@ class AdminNavigationMenu extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        //backgroundColor: Colors.red,
         title: const Text('Admin Dashboard'),
         actions: [
           IconButton(
