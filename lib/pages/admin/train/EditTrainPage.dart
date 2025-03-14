@@ -3,11 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:train_app/controllers/FirebaseAdminController.dart';
 import 'package:train_app/utils/constants/sizes.dart';
-import 'package:train_app/utils/services/TimeFunctions.dart'; // Assuming this is where showCustomTimePicker and formatTimeOfDay are
+import 'package:train_app/utils/services/TimeFunctions.dart';
 
-class EditTrainPage extends StatelessWidget {
+class EditTrainPage extends StatefulWidget {
   final String trainId;
   final Map<String, dynamic> trainData;
+
+  const EditTrainPage({
+    super.key,
+    required this.trainId,
+    required this.trainData,
+  });
+
+  @override
+  State<EditTrainPage> createState() => _EditTrainPageState();
+}
+
+class _EditTrainPageState extends State<EditTrainPage> {
   final FirebaseAdminController adminController =
       Get.find<FirebaseAdminController>();
   late final TextEditingController seatsController;
@@ -15,25 +27,43 @@ class EditTrainPage extends StatelessWidget {
   late final TextEditingController priceController;
   late final RxMap<String, String> schedule;
   late final Rx<DateTime> selectedDate;
+  late Future<DocumentSnapshot> _routeFuture;
 
-  EditTrainPage({super.key, required this.trainId, required this.trainData}) {
+  @override
+  void initState() {
+    super.initState();
     seatsController = TextEditingController(
-      text: trainData['seatsTotal'].toString(),
+      text: widget.trainData['seatsTotal'].toString(),
     );
     availableSeatsController = TextEditingController(
       text:
-          trainData['seatsAvailable']?.toString() ??
-          trainData['seatsTotal'].toString(),
+          widget.trainData['seatsAvailable']?.toString() ??
+          widget.trainData['seatsTotal'].toString(),
     );
     priceController = TextEditingController(
-      text: trainData['pricePerPassenger'].toString(),
+      text: widget.trainData['pricePerPassenger'].toString(),
     );
     schedule = RxMap<String, String>.from(
-      (trainData['schedule'] as Map<String, dynamic>).map(
+      (widget.trainData['schedule'] as Map<String, dynamic>).map(
         (key, value) => MapEntry(key, value.toString()),
       ),
     );
-    selectedDate = Rx<DateTime>(DateTime.parse(trainData['date']));
+    selectedDate = Rx<DateTime>(DateTime.parse(widget.trainData['date']));
+    _routeFuture =
+        adminController.firestore
+            .collection('routes')
+            .doc(widget.trainData['routeId'])
+            .get();
+  }
+
+  void _refreshRoute() {
+    setState(() {
+      _routeFuture =
+          adminController.firestore
+              .collection('routes')
+              .doc(widget.trainData['routeId'])
+              .get();
+    });
   }
 
   @override
@@ -92,7 +122,7 @@ class EditTrainPage extends StatelessWidget {
         contentPadding: EdgeInsets.zero,
         title: const Text('Date'),
         subtitle: Text(
-          '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}', // Display YYYY-MM-DD
+          '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}',
         ),
         trailing: const Icon(Icons.calendar_today),
         onTap: () async {
@@ -111,14 +141,18 @@ class EditTrainPage extends StatelessWidget {
   }
 
   Widget _buildScheduleEditor(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-      stream:
-          adminController.firestore
-              .collection('routes')
-              .doc(trainData['routeId'])
-              .snapshots(),
+    return FutureBuilder<DocumentSnapshot>(
+      future: _routeFuture,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const CircularProgressIndicator();
+        if (snapshot.hasError) {
+          return const Text('Error loading route data');
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Text('Route not found');
+        }
 
         final routeData = snapshot.data!.data() as Map<String, dynamic>;
         final stationIds = List<String>.from(routeData['stationIds']);
@@ -128,14 +162,24 @@ class EditTrainPage extends StatelessWidget {
           children: [
             const Text('Schedule:'),
             ...stationIds.map((stationId) {
-              return StreamBuilder<DocumentSnapshot>(
-                stream:
+              return FutureBuilder<DocumentSnapshot>(
+                future:
                     adminController.firestore
                         .collection('stations')
                         .doc(stationId)
-                        .snapshots(),
+                        .get(),
                 builder: (context, stationSnapshot) {
-                  if (!stationSnapshot.hasData) return const SizedBox.shrink();
+                  if (stationSnapshot.hasError) {
+                    return const SizedBox.shrink();
+                  }
+                  if (stationSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const SizedBox.shrink();
+                  }
+                  if (!stationSnapshot.hasData ||
+                      !stationSnapshot.data!.exists) {
+                    return const SizedBox.shrink();
+                  }
 
                   final stationData =
                       stationSnapshot.data!.data() as Map<String, dynamic>;
@@ -197,13 +241,13 @@ class EditTrainPage extends StatelessWidget {
 
     try {
       await adminController.editTrain(
-        trainId,
+        widget.trainId,
         schedule: schedule,
         seatsTotal: totalSeats,
         seatsAvailable: availableSeats,
         pricePerPassenger: double.parse(priceController.text.trim()),
         date:
-            '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}', // Save as YYYY-MM-DD
+            '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}',
       );
       Get.back();
       Get.snackbar('Success', 'Train updated successfully');

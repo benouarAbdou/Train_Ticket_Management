@@ -8,18 +8,35 @@ import 'package:train_app/pages/admin/routes/CreateRoutePage.dart';
 import 'package:train_app/pages/admin/routes/EditRoutePage.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 
-class RoutesAdminPage extends StatelessWidget {
+class RoutesAdminPage extends StatefulWidget {
+  const RoutesAdminPage({super.key});
+
+  @override
+  State<RoutesAdminPage> createState() => _RoutesAdminPageState();
+}
+
+class _RoutesAdminPageState extends State<RoutesAdminPage> {
   final FirebaseAdminController adminController =
       Get.find<FirebaseAdminController>();
+  late Future<QuerySnapshot> _routesFuture;
 
-  RoutesAdminPage({super.key});
+  @override
+  void initState() {
+    super.initState();
+    _routesFuture = adminController.firestore.collection('routes').get();
+  }
+
+  void _refreshRoutes() {
+    setState(() {
+      _routesFuture = adminController.firestore.collection('routes').get();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
-
         child: Column(
           children: [
             Row(
@@ -33,21 +50,28 @@ class RoutesAdminPage extends StatelessWidget {
                 ),
                 const SizedBox(width: TSizes.spaceBtwItems),
                 ElevatedButton(
-                  onPressed: () => Get.to(() => CreateRoutePage()),
+                  onPressed: () {
+                    Get.to(
+                      () => CreateRoutePage(),
+                    )?.then((_) => _refreshRoutes());
+                  },
                   child: const Text('Add'),
                 ),
               ],
             ),
             Expanded(
-              // Wrap the ListView in an Expanded widget
-              child: StreamBuilder<QuerySnapshot>(
-                stream:
-                    adminController.firestore.collection('routes').snapshots(),
+              child: FutureBuilder<QuerySnapshot>(
+                future: _routesFuture,
                 builder: (context, snapshot) {
-                  if (snapshot.hasError)
+                  if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
-                  if (!snapshot.hasData)
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('No routes found'));
+                  }
 
                   final routes = snapshot.data!.docs;
 
@@ -75,7 +99,7 @@ class RoutesAdminPage extends StatelessWidget {
                                       routeId: routeId,
                                       routeData: routeData,
                                     ),
-                                  ),
+                                  )?.then((_) => _refreshRoutes()),
                             ),
                           ],
                         ),
@@ -95,10 +119,21 @@ class RoutesAdminPage extends StatelessWidget {
 Widget buildStationSelector(RxList<String> selectedStations) {
   final adminController = Get.find<FirebaseAdminController>();
 
-  return StreamBuilder<QuerySnapshot>(
-    stream: adminController.firestore.collection('stations').snapshots(),
+  Future<QuerySnapshot> stationsFuture =
+      adminController.firestore.collection('stations').get();
+
+  return FutureBuilder<QuerySnapshot>(
+    future: stationsFuture,
     builder: (context, snapshot) {
-      if (!snapshot.hasData) return const CircularProgressIndicator();
+      if (snapshot.hasError) {
+        return Center(child: Text('Error: ${snapshot.error}'));
+      }
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const CircularProgressIndicator();
+      }
+      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        return const Text('No stations available');
+      }
 
       final stations = snapshot.data!.docs;
 
@@ -126,7 +161,6 @@ Widget buildStationSelector(RxList<String> selectedStations) {
                               );
                               return ListTile(
                                 contentPadding: EdgeInsets.zero,
-
                                 key: ValueKey(stationId),
                                 title: Text(station['name']),
                                 trailing: IconButton(

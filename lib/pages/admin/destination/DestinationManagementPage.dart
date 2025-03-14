@@ -19,11 +19,24 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
       Get.find<FirebaseAdminController>();
   final _formKey = GlobalKey<FormState>();
   final _stationNameController = TextEditingController();
+  late Future<QuerySnapshot> _stationsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _stationsFuture = FirebaseFirestore.instance.collection('stations').get();
+  }
 
   @override
   void dispose() {
     _stationNameController.dispose();
     super.dispose();
+  }
+
+  void _refreshStations() {
+    setState(() {
+      _stationsFuture = FirebaseFirestore.instance.collection('stations').get();
+    });
   }
 
   Future<void> _addNewStation() async {
@@ -35,6 +48,7 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
         {}, // Empty distances map initially
       );
       _stationNameController.clear();
+      _refreshStations(); // Refresh the list after adding
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Station added successfully')),
       );
@@ -59,9 +73,10 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
               try {
                 await _adminController.editStation(
                   stationName,
-                  newName: updatedName, // Pass the updated name
+                  newName: updatedName,
                   distances: distances,
                 );
+                _refreshStations(); // Refresh the list after editing
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Station updated successfully')),
                 );
@@ -84,7 +99,6 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
         padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-
           children: [
             const Text(
               'Stations Management',
@@ -126,11 +140,8 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
 
             // Stations List
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance
-                        .collection('stations')
-                        .snapshots(),
+              child: FutureBuilder<QuerySnapshot>(
+                future: _stationsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
@@ -138,6 +149,10 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('No stations found'));
                   }
 
                   return ListView.builder(
@@ -157,6 +172,7 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
                             station.id,
                             !isActive,
                           );
+                          _refreshStations(); // Refresh after toggling
                         },
                         onEditDistances: () {
                           _showDistanceDialog(

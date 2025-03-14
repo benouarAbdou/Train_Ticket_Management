@@ -7,11 +7,29 @@ import 'package:train_app/pages/admin/train/CreateTrainPage.dart';
 import 'package:train_app/pages/admin/train/EditTrainPage.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 
-class TrainAdminPage extends StatelessWidget {
+class TrainAdminPage extends StatefulWidget {
+  const TrainAdminPage({super.key});
+
+  @override
+  State<TrainAdminPage> createState() => _TrainAdminPageState();
+}
+
+class _TrainAdminPageState extends State<TrainAdminPage> {
   final FirebaseAdminController adminController =
       Get.find<FirebaseAdminController>();
+  late Future<QuerySnapshot> _trainsFuture;
 
-  TrainAdminPage({super.key});
+  @override
+  void initState() {
+    super.initState();
+    _trainsFuture = adminController.firestore.collection('trains').get();
+  }
+
+  void _refreshTrains() {
+    setState(() {
+      _trainsFuture = adminController.firestore.collection('trains').get();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,21 +49,27 @@ class TrainAdminPage extends StatelessWidget {
                 ),
                 const SizedBox(width: TSizes.spaceBtwItems),
                 ElevatedButton(
-                  onPressed: () => Get.to(() => CreateTrainPage()),
+                  onPressed: () {
+                    Get.to(
+                      () => CreateTrainPage(),
+                    )?.then((_) => _refreshTrains());
+                  },
                   child: const Text('Add'),
                 ),
               ],
             ),
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream:
-                    adminController.firestore.collection('trains').snapshots(),
+              child: FutureBuilder<QuerySnapshot>(
+                future: _trainsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
-                  if (!snapshot.hasData) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('No trains found'));
                   }
 
                   final trains = snapshot.data!.docs;
@@ -91,7 +115,7 @@ class TrainAdminPage extends StatelessWidget {
                                   trainId: trainId,
                                   trainData: trainData,
                                 ),
-                              ),
+                              )?.then((_) => _refreshTrains()),
                         ),
                       );
                     },

@@ -6,7 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 import 'package:train_app/utils/services/TimeFunctions.dart';
 
-class CreateTrainPage extends StatelessWidget {
+class CreateTrainPage extends StatefulWidget {
+  const CreateTrainPage({super.key});
+
+  @override
+  State<CreateTrainPage> createState() => _CreateTrainPageState();
+}
+
+class _CreateTrainPageState extends State<CreateTrainPage> {
   final FirebaseAdminController adminController =
       Get.find<FirebaseAdminController>();
   final TextEditingController dateController = TextEditingController();
@@ -14,8 +21,27 @@ class CreateTrainPage extends StatelessWidget {
   final TextEditingController priceController = TextEditingController();
   final RxString selectedRouteId = ''.obs;
   final RxMap<String, String> schedule = <String, String>{}.obs;
+  late Future<QuerySnapshot> _routesFuture;
 
-  CreateTrainPage({super.key});
+  @override
+  void initState() {
+    super.initState();
+    _routesFuture =
+        adminController.firestore
+            .collection('routes')
+            .where('isActive', isEqualTo: true)
+            .get();
+  }
+
+  void _refreshRoutes() {
+    setState(() {
+      _routesFuture =
+          adminController.firestore
+              .collection('routes')
+              .where('isActive', isEqualTo: true)
+              .get();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,14 +111,18 @@ class CreateTrainPage extends StatelessWidget {
   }
 
   Widget _buildRouteDropdown() {
-    return StreamBuilder<QuerySnapshot>(
-      stream:
-          adminController.firestore
-              .collection('routes')
-              .where('isActive', isEqualTo: true)
-              .snapshots(),
+    return FutureBuilder<QuerySnapshot>(
+      future: _routesFuture,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const CircularProgressIndicator();
+        if (snapshot.hasError) {
+          return const Text('Error loading routes');
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Text('No active routes available');
+        }
 
         final routes = snapshot.data!.docs;
 
@@ -134,14 +164,22 @@ class CreateTrainPage extends StatelessWidget {
       return const Text('Please select a route to set the schedule');
     }
 
-    return StreamBuilder<DocumentSnapshot>(
-      stream:
+    return FutureBuilder<DocumentSnapshot>(
+      future:
           adminController.firestore
               .collection('routes')
               .doc(selectedRouteId.value)
-              .snapshots(),
+              .get(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const CircularProgressIndicator();
+        if (snapshot.hasError) {
+          return const Text('Error loading route data');
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator();
+        }
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Text('Route not found');
+        }
 
         final routeData = snapshot.data!.data() as Map<String, dynamic>;
         final stationIds = List<String>.from(routeData['stationIds']);
@@ -151,14 +189,24 @@ class CreateTrainPage extends StatelessWidget {
           children: [
             const Text('Schedule:'),
             ...stationIds.map((stationId) {
-              return StreamBuilder<DocumentSnapshot>(
-                stream:
+              return FutureBuilder<DocumentSnapshot>(
+                future:
                     adminController.firestore
                         .collection('stations')
                         .doc(stationId)
-                        .snapshots(),
+                        .get(),
                 builder: (context, stationSnapshot) {
-                  if (!stationSnapshot.hasData) return const SizedBox.shrink();
+                  if (stationSnapshot.hasError) {
+                    return const SizedBox.shrink();
+                  }
+                  if (stationSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const SizedBox.shrink();
+                  }
+                  if (!stationSnapshot.hasData ||
+                      !stationSnapshot.data!.exists) {
+                    return const SizedBox.shrink();
+                  }
 
                   final stationData =
                       stationSnapshot.data!.data() as Map<String, dynamic>;
