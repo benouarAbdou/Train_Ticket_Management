@@ -1,9 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:train_app/controllers/FirebaseAdminController.dart';
-import 'package:train_app/pages/admin/routes/AddRoutePage.dart';
+import 'package:train_app/pages/admin/destination/AddStationPage.dart';
+import 'package:train_app/pages/admin/routes/CreateRoutePage.dart';
 import 'package:train_app/pages/admin/routes/EditRoutePage.dart';
+import 'package:train_app/utils/constants/sizes.dart';
 
 class RoutesAdminPage extends StatelessWidget {
   final FirebaseAdminController adminController =
@@ -14,127 +17,78 @@ class RoutesAdminPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manage Routes'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => Get.to(() => CreateRoutePage()),
-          ),
-        ],
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: adminController.firestore.collection('routes').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError)
-            return Center(child: Text('Error: ${snapshot.error}'));
-          if (!snapshot.hasData)
-            return const Center(child: CircularProgressIndicator());
-
-          final routes = snapshot.data!.docs;
-
-          return ListView.builder(
-            itemCount: routes.length,
-            itemBuilder: (context, index) {
-              final route = routes[index];
-              final routeData = route.data() as Map<String, dynamic>;
-              final routeId = route.id;
-
-              return ListTile(
-                title: Text(routeData['name']),
-                subtitle: Text('Stations: ${routeData['stationIds'].length}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed:
-                          () => Get.to(
-                            () => EditRoutePage(
-                              routeId: routeId,
-                              routeData: routeData,
-                            ),
-                          ),
-                    ),
-                    Switch(
-                      value: routeData['isActive'],
-                      onChanged: (value) async {
-                        await adminController.editRoute(
-                          routeId,
-                          isActive: value,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-class CreateRoutePage extends StatelessWidget {
-  final FirebaseAdminController adminController =
-      Get.find<FirebaseAdminController>();
-  final TextEditingController nameController = TextEditingController();
-  final RxList<String> selectedStations = <String>[].obs;
-
-  CreateRoutePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Create New Route')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
+
         child: Column(
           children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Route Name'),
-            ),
-            const SizedBox(height: 16),
-            Expanded(child: buildStationSelector(selectedStations)),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                TextButton(
-                  onPressed: () => Get.back(),
-                  child: const Text('Cancel'),
+                Expanded(
+                  child: Text(
+                    "Routes Management",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
-                TextButton(
-                  onPressed: _createRoute,
-                  child: const Text('Create'),
+                const SizedBox(width: TSizes.spaceBtwItems),
+                ElevatedButton(
+                  onPressed: () => Get.to(() => CreateRoutePage()),
+                  child: const Text('Add'),
                 ),
               ],
+            ),
+            Expanded(
+              // Wrap the ListView in an Expanded widget
+              child: StreamBuilder<QuerySnapshot>(
+                stream:
+                    adminController.firestore.collection('routes').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError)
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  if (!snapshot.hasData)
+                    return const Center(child: CircularProgressIndicator());
+
+                  final routes = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    itemCount: routes.length,
+                    itemBuilder: (context, index) {
+                      final route = routes[index];
+                      final routeData = route.data() as Map<String, dynamic>;
+                      final routeId = route.id;
+
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(routeData['name']),
+                        subtitle: Text(
+                          'Stations: ${routeData['stationIds'].length}',
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Iconsax.edit_copy),
+                              onPressed:
+                                  () => Get.to(
+                                    () => EditRoutePage(
+                                      routeId: routeId,
+                                      routeData: routeData,
+                                    ),
+                                  ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _createRoute() async {
-    if (nameController.text.isEmpty || selectedStations.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please enter a name and select at least one station',
-      );
-      return;
-    }
-    try {
-      await adminController.createRoute(
-        nameController.text.trim(),
-        selectedStations.toList(),
-      );
-      Get.back();
-      Get.snackbar('Success', 'Route created successfully');
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to create route: $e');
-    }
   }
 }
 
@@ -149,7 +103,9 @@ Widget buildStationSelector(RxList<String> selectedStations) {
       final stations = snapshot.data!.docs;
 
       return Column(
+        mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const Text('Stations:'),
           Obx(
@@ -169,6 +125,8 @@ Widget buildStationSelector(RxList<String> selectedStations) {
                                 (doc) => doc['name'] == stationId,
                               );
                               return ListTile(
+                                contentPadding: EdgeInsets.zero,
+
                                 key: ValueKey(stationId),
                                 title: Text(station['name']),
                                 trailing: IconButton(
@@ -181,13 +139,16 @@ Widget buildStationSelector(RxList<String> selectedStations) {
                       ),
                     ),
           ),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed:
-                () => Get.to(
-                  () => AddStationPage(selectedStations: selectedStations),
-                ),
-            child: const Text('Add Station'),
+          const SizedBox(height: TSizes.spaceBtwItems),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed:
+                  () => Get.to(
+                    () => AddStationPage(selectedStations: selectedStations),
+                  ),
+              child: const Text('Add Station'),
+            ),
           ),
         ],
       );

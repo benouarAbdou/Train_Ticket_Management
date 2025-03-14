@@ -4,26 +4,20 @@ import 'package:train_app/controllers/FirebaseAdminController.dart';
 import 'package:train_app/pages/admin/routes/RoutesAdminPage.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 
-class EditRoutePage extends StatelessWidget {
-  final String routeId;
-  final Map<String, dynamic> routeData;
+class CreateRoutePage extends StatelessWidget {
   final FirebaseAdminController adminController =
       Get.find<FirebaseAdminController>();
-  late final TextEditingController nameController;
-  late final RxList<String> selectedStations;
+  final TextEditingController nameController = TextEditingController();
+  final RxList<String> selectedStations = <String>[].obs;
 
-  EditRoutePage({super.key, required this.routeId, required this.routeData}) {
-    nameController = TextEditingController(text: routeData['name']);
-    selectedStations = List<String>.from(routeData['stationIds']).obs;
-  }
+  CreateRoutePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Route')),
+      appBar: AppBar(title: const Text('Create New Route')),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
-
         child: Column(
           children: [
             TextField(
@@ -39,7 +33,10 @@ class EditRoutePage extends StatelessWidget {
                   onPressed: () => Get.back(),
                   child: const Text('Cancel'),
                 ),
-                TextButton(onPressed: _saveRoute, child: const Text('Save')),
+                TextButton(
+                  onPressed: _createRoute,
+                  child: const Text('Create'),
+                ),
               ],
             ),
           ],
@@ -48,20 +45,23 @@ class EditRoutePage extends StatelessWidget {
     );
   }
 
-  Future<void> _saveRoute() async {
-    if (selectedStations.isEmpty) {
-      Get.snackbar('Error', 'Please select at least one station');
+  Future<void> _createRoute() async {
+    if (nameController.text.isEmpty || selectedStations.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter a name and select at least one station',
+      );
       return;
     }
     try {
-      await adminController.editRoute(
-        routeId,
-        stationIds: selectedStations.toList(),
+      await adminController.createRoute(
+        nameController.text.trim(),
+        selectedStations.toList(),
       );
       Get.back();
-      Get.snackbar('Success', 'Route updated successfully');
+      Get.snackbar('Success', 'Route created successfully');
     } catch (e) {
-      Get.snackbar('Error', 'Failed to update route: $e');
+      Get.snackbar('Error', 'Failed to create route: $e');
     }
   }
 }

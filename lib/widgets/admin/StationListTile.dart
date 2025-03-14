@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:toggle_switch/toggle_switch.dart';
-import 'package:train_app/utils/constants/colors.dart';
+import 'package:train_app/widgets/CustomToggle.dart';
 
 class StationListTile extends StatelessWidget {
   final String stationName;
@@ -33,22 +32,7 @@ class StationListTile extends StatelessWidget {
             tooltip: 'Edit Distances',
           ),
           const SizedBox(width: 8), // Small gap for spacing
-          ToggleSwitch(
-            minWidth: 40.0, // Compact width
-            minHeight: 20.0,
-            cornerRadius: 10.0,
-            activeBgColor: [TColors.buttonPrimary], // Green when active
-            activeFgColor: Colors.white,
-            inactiveFgColor: Colors.white, // White text for contrast
-            initialLabelIndex: isActive ? 0 : 1,
-            totalSwitches: 2,
-            icons: const [
-              Icons.check_circle,
-              Icons.cancel,
-            ], // Icons for clarity
-            radiusStyle: true,
-            onToggle: (index) => onToggleActive(),
-          ),
+          CustomToggleSwitch(isActive: isActive, onToggle: onToggleActive),
         ],
       ),
     );

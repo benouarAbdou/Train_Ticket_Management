@@ -88,7 +88,7 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
 
           children: [
             const Text(
-              'Ticket verification',
+              'Stations Management',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: TSizes.spaceBtwItems),
@@ -115,6 +115,9 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
                   ),
                   const SizedBox(width: TSizes.spaceBtwItems),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.all(20),
+                    ),
                     onPressed: _addNewStation,
                     child: const Text('Add'),
                   ),
