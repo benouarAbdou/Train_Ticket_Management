@@ -65,8 +65,4 @@
    flutter run
    ```
 
-## Constraints ⚠️
-- No user authentication for ticket purchases
-- Admin features restricted to authorized personnel
-- Built with Flutter for cross-platform support
 
