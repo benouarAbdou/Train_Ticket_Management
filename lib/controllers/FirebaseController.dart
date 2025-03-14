@@ -13,6 +13,7 @@ class FirebaseController extends GetxController {
   final RxList<Map<String, dynamic>> searchResults =
       <Map<String, dynamic>>[].obs;
   final RxBool isLoading = false.obs;
+  final RxList<String> stations = <String>[].obs; // Added stations cache
 
   @override
   void onInit() {
@@ -21,19 +22,38 @@ class FirebaseController extends GetxController {
     _auth.authStateChanges().listen((User? currentUser) {
       user.value = currentUser;
     });
+    _loadStations(); // Load stations when controller initializes
   }
 
   String generateRandomUuid() {
     final Uuid uuid = Uuid();
-    return uuid.v4(); // Generates a random UUID (version 4)
+    return uuid.v4();
+  }
+
+  // New method to load stations
+  Future<void> _loadStations() async {
+    if (stations.isEmpty) {
+      try {
+        QuerySnapshot snapshot = await _firestore.collection('stations').get();
+        stations.value = snapshot.docs.map((doc) => doc.id).toList();
+      } catch (e) {
+        print('Error loading stations: $e');
+      }
+    }
+  }
+
+  // Public method to get stations (can be called if needed)
+  Future<List<String>> getStations() async {
+    if (stations.isEmpty) {
+      await _loadStations();
+    }
+    return stations.toList();
   }
 
   // Authentication methods
-
   Future<bool> isAdmin() async {
     final user = _auth.currentUser;
     if (user == null) return false;
-    // Assuming custom claims are used for admin status
     final token = await user.getIdTokenResult();
     return token.claims?['admin'] == true;
   }
@@ -52,7 +72,6 @@ class FirebaseController extends GetxController {
       final String formattedDate =
           "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
-      // Query active routes with departureCity in stationIds
       final QuerySnapshot routeSnapshot =
           await _firestore
               .collection('routes')
@@ -111,18 +130,18 @@ class FirebaseController extends GetxController {
     }
   }
 
-  // Booking methods (Updated for new structure)
+  // Booking methods remain unchanged
   Future<bool> bookTicket({
     required String trainId,
     required String departureCity,
     required String arrivalCity,
-    required int passengers, // Will always be 1 in this case
+    required int passengers,
     required String userId,
     required String departureTime,
     required String arrivalTime,
     required String departureDate,
     required String arrivalDate,
-    required List<String> passengerNames, // Will contain one name
+    required List<String> passengerNames,
   }) async {
     try {
       print("Starting booking process for ${passengerNames[0]}");
@@ -142,7 +161,6 @@ class FirebaseController extends GetxController {
         final int seatsLeft = trainData['seatsLeft'];
 
         if (seatsLeft < 1) {
-          // Check for single seat since passengers is always 1
           print("Not enough seats left");
           return false;
         }
@@ -152,12 +170,10 @@ class FirebaseController extends GetxController {
           return false;
         }
 
-        // Update seats left (decrement by 1)
         transaction.update(trainRef, {'seatsLeft': seatsLeft - 1});
 
         String passengerId = generateRandomUuid();
 
-        // Create individual booking
         DocumentReference bookingRef = _firestore.collection('bookings').doc();
         transaction.set(bookingRef, {
           'userId': userId,
@@ -169,7 +185,7 @@ class FirebaseController extends GetxController {
           'departureDate': departureDate,
           'arrivalDate': arrivalDate,
           'passengerId': passengerId,
-          'passengerNames': passengerNames, // Single name array
+          'passengerNames': passengerNames,
           'bookingDate': DateTime.now().toIso8601String(),
           'status': 'confirmed',
           'price': trainData['pricePerPassenger'],
@@ -197,7 +213,7 @@ class FirebaseController extends GetxController {
 
       for (var doc in bookingSnapshot.docs) {
         Map<String, dynamic> bookingData = doc.data() as Map<String, dynamic>;
-        print('Booking data: $bookingData'); // Debug raw booking data
+        print('Booking data: $bookingData');
 
         bookings.add({
           'departureCity': bookingData['departureCity'],

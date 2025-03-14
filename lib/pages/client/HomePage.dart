@@ -22,34 +22,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   DateTime? _selectedDate = DateTime.now();
 
-  final List<String> stations = [
-    'New York',
-    'Los Angeles',
-    'Chicago',
-    'Houston',
-    'Phoenix',
-    'Philadelphia',
-    'San Antonio',
-    'San Diego',
-    'Dallas',
-    'San Jose',
-    'Austin',
-    'Jacksonville',
-    'Fort Worth',
-    'Columbus',
-    'Indianapolis',
-    'Charlotte',
-    'Seattle',
-    'Denver',
-    'Washington',
-    'Boston',
-    'Oran',
-    'Alger',
-    'Constantine',
-    'Annaba',
-    'Tlemcen',
-  ];
-
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -102,10 +74,11 @@ class _MyHomePageState extends State<MyHomePage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: TSizes.spaceBtwInputFields),
+            // Departure Station TypeAheadField (No Obx needed unless stations is dynamic)
             TypeAheadField(
               controller: _departController,
               suggestionsCallback: (pattern) {
-                return stations
+                return firebaseController.stations
                     .where(
                       (station) =>
                           station.toLowerCase().contains(pattern.toLowerCase()),
@@ -129,10 +102,11 @@ class _MyHomePageState extends State<MyHomePage> {
               },
             ),
             const SizedBox(height: TSizes.spaceBtwInputFields),
+            // Destination Station TypeAheadField (No Obx needed unless stations is dynamic)
             TypeAheadField(
               controller: _destinationController,
               suggestionsCallback: (pattern) {
-                return stations
+                return firebaseController.stations
                     .where(
                       (station) =>
                           station.toLowerCase().contains(pattern.toLowerCase()),
@@ -189,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             const SizedBox(height: TSizes.spaceBtwInputFields),
-            // Display search results
+            // Use Obx only for the dynamic search results section
             Expanded(
               child: Obx(
                 () =>
@@ -200,11 +174,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         : ListView.builder(
                           itemCount: firebaseController.searchResults.length,
                           padding: EdgeInsets.zero,
-
                           itemBuilder: (context, index) {
                             final train =
                                 firebaseController.searchResults[index];
-
                             return TrainTicket(
                               departureCity: train['departureCity'],
                               arrivalCity: train['arrivalCity'],
@@ -241,25 +213,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
               ),
             ),
-            // Debug buttons
-            /*SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  await firebaseController.createDummyData();
-                },
-                child: const Text('Add dummy data'),
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  await firebaseController.clearFirestoreData();
-                },
-                child: const Text('Clear dummy data'),
-              ),
-            ),*/
           ],
         ),
       ),
