@@ -67,7 +67,7 @@ class _RoutesAdminPageState extends State<RoutesAdminPage> {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Text("Loading ...");
                   }
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return const Center(child: Text('No routes found'));
@@ -129,7 +129,7 @@ Widget buildStationSelector(RxList<String> selectedStations) {
         return Center(child: Text('Error: ${snapshot.error}'));
       }
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return const CircularProgressIndicator();
+        return Text("Loading ...");
       }
       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
         return const Text('No stations available');

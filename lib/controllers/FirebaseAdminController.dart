@@ -61,7 +61,6 @@ class FirebaseAdminController extends GetxController {
     if (distances != null) updates['distances'] = distances;
     if (isActive != null) updates['isActive'] = isActive;
 
-
     try {
       if (updates.isNotEmpty) {
         // If the name changes, handle the document move and update references
@@ -124,15 +123,11 @@ class FirebaseAdminController extends GetxController {
 
           // Commit all updates atomically
           await batch.commit();
-          print(
-            'Station moved from "$name" to "$newName" and references in routes and trains updated successfully.',
-          );
         } else {
           // Normal update without renaming
           await stationRef.update(updates);
         }
-      } else {
-      }
+      } else {}
     } catch (e) {
       // Consider re-throwing the error or handling it based on your app's needs
       // throw e;

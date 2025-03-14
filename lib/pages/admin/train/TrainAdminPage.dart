@@ -92,19 +92,13 @@ class _TrainAdminPageState extends State<TrainAdminPage> {
                       final trainData = train.data() as Map<String, dynamic>;
                       final trainId = train.id;
 
-                      // Safely get the first station and its departure time from the schedule
-                      final schedule =
-                          trainData['schedule'] as Map<String, dynamic>?;
-                      final firstStation = schedule?.keys.first ?? 'Unknown';
-                      final departureTime = schedule?[firstStation] ?? 'N/A';
-
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(
                           'Train on ${trainData['date'] ?? 'No date'}',
                         ),
                         subtitle: Text(
-                          'Leaving from $firstStation at $departureTime - '
+                          '$trainId - '
                           '${trainData['seatsLeft'] ?? 0}/${trainData['seatsTotal'] ?? 0}',
                         ),
                         trailing: IconButton(
