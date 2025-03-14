@@ -47,7 +47,6 @@ class TrainTicket extends StatelessWidget {
       // Compare arrival time with the current time
       return departureDateTime.isBefore(currentDateTime);
     } catch (e) {
-      print('Error parsing date/time: $e');
       return false; // Assume not expired if parsing fails
     }
   }

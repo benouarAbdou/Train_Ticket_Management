@@ -37,7 +37,6 @@ class FirebaseController extends GetxController {
         QuerySnapshot snapshot = await _firestore.collection('stations').get();
         stations.value = snapshot.docs.map((doc) => doc.id).toList();
       } catch (e) {
-        print('Error loading stations: $e');
       }
     }
   }
@@ -124,7 +123,6 @@ class FirebaseController extends GetxController {
         (a, b) => a['departureTime'].compareTo(b['departureTime']),
       );
     } catch (e) {
-      print('Error searching trains: $e');
     } finally {
       isLoading.value = false;
     }
@@ -144,7 +142,6 @@ class FirebaseController extends GetxController {
     required List<String> passengerNames,
   }) async {
     try {
-      print("Starting booking process for ${passengerNames[0]}");
       return await _firestore.runTransaction<bool>((transaction) async {
         DocumentReference trainRef = _firestore
             .collection('trains')
@@ -153,7 +150,6 @@ class FirebaseController extends GetxController {
 
         if (!trainSnapshot.exists ||
             !(trainSnapshot.data() as Map<String, dynamic>)['isActive']) {
-          print("Train does not exist or is not active");
           return false;
         }
 
@@ -161,12 +157,10 @@ class FirebaseController extends GetxController {
         final int seatsLeft = trainData['seatsLeft'];
 
         if (seatsLeft < 1) {
-          print("Not enough seats left");
           return false;
         }
 
         if (passengerNames.length != 1) {
-          print("Invalid number of passenger names for single booking");
           return false;
         }
 
@@ -191,18 +185,15 @@ class FirebaseController extends GetxController {
           'price': trainData['pricePerPassenger'],
         });
 
-        print('Booking successful for ${passengerNames[0]}');
         return true;
       });
     } catch (e) {
-      print('Error booking ticket for ${passengerNames[0]}: $e');
       return false;
     }
   }
 
   Future<List<Map<String, dynamic>>> readBookedTickets(String userId) async {
     try {
-      print('Fetching booked tickets for user: $userId');
       QuerySnapshot bookingSnapshot =
           await FirebaseFirestore.instance
               .collection('bookings')
@@ -213,7 +204,6 @@ class FirebaseController extends GetxController {
 
       for (var doc in bookingSnapshot.docs) {
         Map<String, dynamic> bookingData = doc.data() as Map<String, dynamic>;
-        print('Booking data: $bookingData');
 
         bookings.add({
           'departureCity': bookingData['departureCity'],
@@ -230,10 +220,8 @@ class FirebaseController extends GetxController {
         });
       }
 
-      print('Found ${bookings.length} bookings');
       return bookings;
     } catch (e) {
-      print('Error reading booked tickets: $e');
       return [];
     }
   }
@@ -253,7 +241,6 @@ class FirebaseController extends GetxController {
         return data;
       }).toList();
     } catch (e) {
-      print('Error getting user bookings: $e');
       return [];
     }
   }

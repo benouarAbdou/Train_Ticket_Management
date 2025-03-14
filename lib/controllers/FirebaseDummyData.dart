@@ -20,9 +20,7 @@ class FirebaseDummyController extends GetxController {
         }
         await batch.commit();
       }
-      print('All Firestore data cleared successfully');
     } catch (e) {
-      print('Error clearing Firestore data: $e');
     }
   }
 
@@ -119,9 +117,7 @@ class FirebaseDummyController extends GetxController {
         }
       }
 
-      print('Dummy data created successfully');
     } catch (e) {
-      print('Error creating dummy data: $e');
     }
   }
 }

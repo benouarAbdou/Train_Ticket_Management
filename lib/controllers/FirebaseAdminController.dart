@@ -49,7 +49,6 @@ class FirebaseAdminController extends GetxController {
     // Check if the original document exists
     final docSnapshot = await stationRef.get();
     if (!docSnapshot.exists) {
-      print('Station "$name" does not exist in Firestore.');
       return;
     }
 
@@ -62,7 +61,6 @@ class FirebaseAdminController extends GetxController {
     if (distances != null) updates['distances'] = distances;
     if (isActive != null) updates['isActive'] = isActive;
 
-    print('Updates to be applied: $updates');
 
     try {
       if (updates.isNotEmpty) {
@@ -132,13 +130,10 @@ class FirebaseAdminController extends GetxController {
         } else {
           // Normal update without renaming
           await stationRef.update(updates);
-          print('Station "$name" updated successfully.');
         }
       } else {
-        print('No updates to apply for "$name".');
       }
     } catch (e) {
-      print('Error updating station "$name": $e');
       // Consider re-throwing the error or handling it based on your app's needs
       // throw e;
     }

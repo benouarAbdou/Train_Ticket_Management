@@ -177,7 +177,6 @@ class _BookingScreenState extends State<BookingScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  print("Button pressed");
 
                   String userId = await hiveController.getUserId();
                   List<String> passengerNames =
@@ -271,12 +270,10 @@ class _BookingScreenState extends State<BookingScreen> {
                       );
                     }
 
-                    print('Booking results: $bookingResults');
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Error booking tickets: $e')),
                     );
-                    print('Booking error: $e');
                   }
                 },
 

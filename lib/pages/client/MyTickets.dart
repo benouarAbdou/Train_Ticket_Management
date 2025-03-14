@@ -34,7 +34,6 @@ class BookedTicketsScreen extends StatelessWidget {
 
       return tickets;
     } catch (e) {
-      print('Error getting tickets: $e');
       // Fallback to local storage if there's an error
       return await hiveController.getLocalBookings();
     }

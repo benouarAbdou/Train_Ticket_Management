@@ -49,7 +49,6 @@ class NotificationService extends GetxService {
 
       // Skip if the notification time is in the past
       if (notificationTime.isBefore(tz.TZDateTime.now(tz.local))) {
-        print('Notification time is in the past, skipping...');
         return;
       }
 
@@ -77,9 +76,7 @@ class NotificationService extends GetxService {
             UILocalNotificationDateInterpretation.absoluteTime,
       );
 
-      print('Notification scheduled for $notificationTime');
     } catch (e) {
-      print('Error scheduling notification: $e');
     }
   }
 
@@ -87,9 +84,7 @@ class NotificationService extends GetxService {
   Future<void> cancelNotification(String trainId) async {
     try {
       await flutterLocalNotificationsPlugin.cancel(trainId.hashCode);
-      print('Notification cancelled for train $trainId');
     } catch (e) {
-      print('Error cancelling notification: $e');
     }
   }
 
@@ -97,9 +92,7 @@ class NotificationService extends GetxService {
   Future<void> cancelAllNotifications() async {
     try {
       await flutterLocalNotificationsPlugin.cancelAll();
-      print('All notifications cancelled');
     } catch (e) {
-      print('Error cancelling all notifications: $e');
     }
   }
 }
