@@ -209,6 +209,7 @@ class BookedTicketsScreen extends StatelessWidget {
                                     booking['numberOfPassengers'] ?? 1,
                                 ticketId: booking["id"],
                                 passengerId: booking['passengerId'],
+                                status: booking['status'],
                               ),
                             );
                           },

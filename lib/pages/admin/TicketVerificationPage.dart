@@ -28,6 +28,8 @@ class _TicketVerificationPageState extends State<TicketVerificationPage> {
   }
 
   Future<void> _verifyTicket() async {
+    FocusScope.of(context).unfocus();
+
     final result = await _adminController.verifyTicket(
       ticketId: _ticketIdController.text,
       onError:
@@ -109,6 +111,8 @@ class _TicketVerificationPageState extends State<TicketVerificationPage> {
                 numberOfPassengers: _ticketDetails!['passengerNames'].length,
                 status: _ticketDetails!['status'],
                 onTap: () {
+                  FocusScope.of(context).unfocus();
+
                   Get.to(
                     () => TicketDetailsScreen(
                       departureCity: _ticketDetails!['departureCity'],

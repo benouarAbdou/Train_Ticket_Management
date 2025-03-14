@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Add this for better date parsing
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 
 class TrainTicket extends StatelessWidget {
   final String departureCity;
   final String arrivalCity;
-  final String departureTime;
+  final String departureTime; // Expected format: "HH:MM" (e.g., "14:30")
   final String arrivalTime;
-  final String departureDate;
+  final String
+  departureDate; // Expected format: "MMM DD, YYYY" (e.g., "Mar 14, 2025")
   final String arrivalDate;
-  final int? seatsLeft; // Made nullable
+  final int? seatsLeft;
   final double price;
   final int numberOfPassengers;
-  final String? status; // Added status parameter
+  final String? status;
   final GestureTapCallback onTap;
 
   const TrainTicket({
@@ -27,11 +29,33 @@ class TrainTicket extends StatelessWidget {
     required this.price,
     required this.numberOfPassengers,
     this.status,
-    required this.onTap, // Optional status
+    required this.onTap,
   });
+
+  // Helper method to check if ticket is expired
+  bool _isTicketExpired() {
+    try {
+      // Get the current date and time
+      final currentDateTime = DateTime.now();
+
+      // Parse the arrival date and time
+      final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
+      final departureDateTime = dateFormat.parse(
+        '$departureDate $departureTime',
+      );
+
+      // Compare arrival time with the current time
+      return departureDateTime.isBefore(currentDateTime);
+    } catch (e) {
+      print('Error parsing date/time: $e');
+      return false; // Assume not expired if parsing fails
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isExpired = _isTicketExpired();
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -109,16 +133,18 @@ class TrainTicket extends StatelessWidget {
                   vertical: TSizes.xs,
                 ),
                 decoration: BoxDecoration(
-                  color: TColors.black,
+                  color: isExpired ? Colors.red : TColors.black,
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(TSizes.borderRadiusMd),
                     topRight: Radius.circular(TSizes.borderRadiusLg),
                   ),
                 ),
                 child: Text(
-                  seatsLeft != null
-                      ? '$seatsLeft Seats Left'
-                      : (status ?? 'Unknown'),
+                  isExpired
+                      ? 'Expired'
+                      : (seatsLeft != null
+                          ? '$seatsLeft Seats Left'
+                          : (status ?? 'Unknown')),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: TSizes.fontSizeSm,
