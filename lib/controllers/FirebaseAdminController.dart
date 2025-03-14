@@ -95,15 +95,20 @@ class FirebaseAdminController extends GetxController {
     String trainId, {
     Map<String, String>? schedule,
     int? seatsTotal,
+    int? seatsAvailable, // Added
     double? pricePerPassenger,
     bool? isActive,
+    String? date,
   }) async {
     final updates = <String, dynamic>{};
     if (schedule != null) updates['schedule'] = schedule;
     if (seatsTotal != null) updates['seatsTotal'] = seatsTotal;
+    if (seatsAvailable != null)
+      updates['seatsAvailable'] = seatsAvailable; // Added
     if (pricePerPassenger != null)
       updates['pricePerPassenger'] = pricePerPassenger;
     if (isActive != null) updates['isActive'] = isActive;
+    if (date != null) updates['date'] = date;
     await firestore.collection('trains').doc(trainId).update(updates);
   }
 

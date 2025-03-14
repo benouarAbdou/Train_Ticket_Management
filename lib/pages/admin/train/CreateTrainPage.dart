@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:train_app/controllers/FirebaseAdminController.dart';
 import 'package:intl/intl.dart';
+import 'package:train_app/utils/constants/sizes.dart';
+import 'package:train_app/utils/services/TimeFunctions.dart';
 
 class CreateTrainPage extends StatelessWidget {
   final FirebaseAdminController adminController =
@@ -20,12 +22,12 @@ class CreateTrainPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Create New Train')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
         child: SingleChildScrollView(
           child: Column(
             children: [
               _buildRouteDropdown(),
-              const SizedBox(height: 16),
+              const SizedBox(height: TSizes.spaceBtwInputFields),
               TextField(
                 controller: dateController,
                 decoration: const InputDecoration(
@@ -45,11 +47,13 @@ class CreateTrainPage extends StatelessWidget {
                   }
                 },
               ),
+              const SizedBox(height: TSizes.spaceBtwInputFields),
               TextField(
                 controller: seatsController,
                 decoration: const InputDecoration(labelText: 'Total Seats'),
                 keyboardType: TextInputType.number,
               ),
+              const SizedBox(height: TSizes.spaceBtwInputFields),
               TextField(
                 controller: priceController,
                 decoration: const InputDecoration(
@@ -57,9 +61,9 @@ class CreateTrainPage extends StatelessWidget {
                 ),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: TSizes.spaceBtwInputFields),
               Obx(() => _buildScheduleEditor(context)),
-              const SizedBox(height: 16),
+              const SizedBox(height: TSizes.spaceBtwInputFields),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -165,11 +169,25 @@ class CreateTrainPage extends StatelessWidget {
                         Expanded(child: Text(stationData['name'])),
                         SizedBox(
                           width: 120,
-                          child: TextField(
-                            decoration: const InputDecoration(
-                              hintText: 'HH:MM',
+                          child: GestureDetector(
+                            onTap: () async {
+                              final TimeOfDay? picked =
+                                  await showCustomTimePicker(context);
+                              if (picked != null) {
+                                schedule[stationId] = formatTimeOfDay(picked);
+                              }
+                            },
+                            child: Obx(
+                              () => TextField(
+                                controller: TextEditingController(
+                                  text: schedule[stationId],
+                                ),
+                                decoration: const InputDecoration(
+                                  hintText: 'HH:MM',
+                                ),
+                                enabled: false, // Disable direct text input
+                              ),
                             ),
-                            onChanged: (value) => schedule[stationId] = value,
                           ),
                         ),
                       ],
