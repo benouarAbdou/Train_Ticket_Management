@@ -26,22 +26,25 @@ class FirebaseDummyController extends GetxController {
     }
   }
 
-  // Create dummy data for testing (Updated for new structure)
+  // Create dummy data for testing with Algerian wilayas
   Future<void> createDummyData() async {
     try {
-      // Predefined stations with realistic distances (subset for simplicity)
-      final Map<String, Map<String, int>> stationsData = {
-        'New York': {'Philadelphia': 94, 'Washington': 225, 'Boston': 215},
-        'Philadelphia': {'New York': 94, 'Washington': 135},
-        'Washington': {'New York': 225, 'Philadelphia': 135},
-        'Boston': {'New York': 215},
-        'Chicago': {'Indianapolis': 183, 'Columbus': 317},
-        'Indianapolis': {'Chicago': 183},
-        'Columbus': {'Chicago': 317},
+      // Define Algerian wilayas with approximate distances
+      final Map<String, Map<String, int>> wilayasData = {
+        'Algiers': {'Blida': 50, 'Tipaza': 70, 'Boumerdes': 40},
+        'Blida': {'Algiers': 50, 'Medea': 70},
+        'Tipaza': {'Algiers': 70, 'Ain Defla': 90},
+        'Boumerdes': {'Algiers': 40, 'Tizi Ouzou': 60},
+        'Medea': {'Blida': 70, 'Djelfa': 120},
+        'Ain Defla': {'Tipaza': 90, 'Chlef': 110},
+        'Tizi Ouzou': {'Boumerdes': 60, 'Bejaia': 100},
+        'Djelfa': {'Medea': 120, 'Laghouat': 100},
+        'Chlef': {'Ain Defla': 110, 'Mostaganem': 150},
+        'Bejaia': {'Tizi Ouzou': 100, 'Jijel': 90},
       };
 
-      // Add stations
-      for (var entry in stationsData.entries) {
+      // Add wilayas as stations
+      for (var entry in wilayasData.entries) {
         await _firestore.collection('stations').doc(entry.key).set({
           'name': entry.key,
           'isActive': true,
@@ -49,15 +52,19 @@ class FirebaseDummyController extends GetxController {
         });
       }
 
-      // Predefined routes (realistic examples)
+      // Define routes based on geographical proximity
       final List<Map<String, dynamic>> routes = [
         {
-          'name': 'Northeast Corridor',
-          'stationIds': ['Boston', 'New York', 'Philadelphia', 'Washington'],
+          'name': 'Central Line',
+          'stationIds': ['Algiers', 'Blida', 'Medea', 'Djelfa'],
         },
         {
-          'name': 'Midwest Loop',
-          'stationIds': ['Chicago', 'Indianapolis', 'Columbus'],
+          'name': 'Coastal Line',
+          'stationIds': ['Algiers', 'Tipaza', 'Ain Defla', 'Chlef'],
+        },
+        {
+          'name': 'Kabylie Line',
+          'stationIds': ['Algiers', 'Boumerdes', 'Tizi Ouzou', 'Bejaia'],
         },
       ];
 
@@ -70,18 +77,19 @@ class FirebaseDummyController extends GetxController {
               'isActive': true,
             });
 
-        // Create trains for 15 days
+        // Create a small number of trains for each route
         final DateTime now = DateTime.now();
-        for (int day = 0; day < 15; day++) {
+        for (int day = 0; day < 5; day++) {
+          // Only 5 days for simplicity
           final DateTime trainDate = now.add(Duration(days: day));
           final String formattedDate =
               "${trainDate.year}-${trainDate.month.toString().padLeft(2, '0')}-${trainDate.day.toString().padLeft(2, '0')}";
 
-          // 1-2 trains per day
-          final int trainsPerDay = 1 + Random().nextInt(2);
+          // 1 train per day
+          final int trainsPerDay = 1;
           for (int t = 0; t < trainsPerDay; t++) {
             final Map<String, String> schedule = {};
-            int departureHour = 6 + Random().nextInt(14);
+            int departureHour = 6 + Random().nextInt(10); // Random start time
             int totalMinutes = 0;
 
             for (int s = 0; s < (route['stationIds'] as List).length; s++) {
@@ -93,7 +101,7 @@ class FirebaseDummyController extends GetxController {
               if (s < (route['stationIds'] as List).length - 1) {
                 final nextStation = (route['stationIds'] as List)[s + 1];
                 totalMinutes +=
-                    stationsData[station]![nextStation]! ~/
+                    wilayasData[station]![nextStation]! ~/
                     2; // Rough travel time estimate
               }
             }
@@ -102,9 +110,9 @@ class FirebaseDummyController extends GetxController {
               'routeId': routeRef.id,
               'date': formattedDate,
               'schedule': schedule,
-              'seatsTotal': 100,
-              'seatsLeft': 100,
-              'pricePerPassenger': 50.0 + Random().nextDouble() * 100,
+              'seatsTotal': 50, // Smaller number of seats
+              'seatsLeft': 50,
+              'pricePerPassenger': 30.0 + Random().nextDouble() * 50,
               'isActive': true,
             });
           }

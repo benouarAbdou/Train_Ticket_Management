@@ -38,13 +38,110 @@ class FirebaseAdminController extends GetxController {
 
   Future<void> editStation(
     String name, {
+    String? newName,
     Map<String, int>? distances,
     bool? isActive,
   }) async {
     final updates = <String, dynamic>{};
+    final firestore = FirebaseFirestore.instance;
+    final stationRef = firestore.collection('stations').doc(name);
+
+    // Check if the original document exists
+    final docSnapshot = await stationRef.get();
+    if (!docSnapshot.exists) {
+      print('Station "$name" does not exist in Firestore.');
+      return;
+    }
+
+    // Only update the name if it's different
+    if (newName != null && newName != name) {
+      updates['name'] = newName;
+    }
+
+    // Add fields to update only if they are not null
     if (distances != null) updates['distances'] = distances;
     if (isActive != null) updates['isActive'] = isActive;
-    await firestore.collection('stations').doc(name).update(updates);
+
+    print('Updates to be applied: $updates');
+
+    try {
+      if (updates.isNotEmpty) {
+        // If the name changes, handle the document move and update references
+        if (newName != null && newName != name) {
+          final newStationRef = firestore.collection('stations').doc(newName);
+          final data = docSnapshot.data()!;
+
+          // Merge updates into existing data
+          data.addAll(updates);
+
+          // Start a batch for atomic updates
+          final batch = firestore.batch();
+
+          // Update the stations collection
+          batch.set(newStationRef, data);
+          batch.delete(stationRef);
+
+          // Update routes containing the old station name
+          final routesQuery =
+              await firestore
+                  .collection('routes')
+                  .where('stationIds', arrayContains: name)
+                  .get();
+
+          for (final routeDoc in routesQuery.docs) {
+            final routeData = routeDoc.data();
+            final List<String> stationIds = List<String>.from(
+              routeData['stationIds'],
+            );
+            final updatedStationIds =
+                stationIds.map((id) => id == name ? newName : id).toList();
+
+            batch.update(routeDoc.reference, {'stationIds': updatedStationIds});
+          }
+
+          // Update trains' schedule containing the old station name
+          final trainsQuery =
+              await firestore
+                  .collection('trains')
+                  .where(
+                    'schedule.$name',
+                    isNotEqualTo: null,
+                  ) // Query trains with the old station name in schedule
+                  .get();
+
+          for (final trainDoc in trainsQuery.docs) {
+            final trainData = trainDoc.data();
+            final Map<String, dynamic> schedule = Map<String, dynamic>.from(
+              trainData['schedule'],
+            );
+
+            // Check if the old name exists in the schedule
+            if (schedule.containsKey(name)) {
+              final time = schedule[name]; // Preserve the time
+              schedule.remove(name); // Remove old key
+              schedule[newName] = time; // Add new key with the same time
+              batch.update(trainDoc.reference, {'schedule': schedule});
+            }
+          }
+
+          // Commit all updates atomically
+          await batch.commit();
+          print(
+            'Station moved from "$name" to "$newName" and references in routes and trains updated successfully.',
+          );
+        } else {
+          // Normal update without renaming
+          await stationRef.update(updates);
+          print('Station "$name" updated successfully.');
+        }
+      } else {
+        print('No updates to apply for "$name".');
+      }
+    } catch (e) {
+      print('Error updating station "$name": $e');
+      // Consider re-throwing the error or handling it based on your app's needs
+      // throw e;
+    }
   }
 
   Future<void> toggleStationActive(String name, bool isActive) async {

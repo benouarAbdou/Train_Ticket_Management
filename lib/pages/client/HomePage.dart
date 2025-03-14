@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get.dart';
 import 'package:train_app/controllers/FirebaseController.dart';
+import 'package:train_app/controllers/FirebaseDummyData.dart';
 import 'package:train_app/pages/client/BookingScreen.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
@@ -18,6 +19,10 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _departController = TextEditingController();
   final TextEditingController _destinationController = TextEditingController();
   final TextEditingController _passengersController = TextEditingController();
+  final FirebaseDummyController dummyController = Get.put(
+    FirebaseDummyController(),
+  );
+
   final FirebaseController firebaseController = Get.find<FirebaseController>();
 
   DateTime? _selectedDate = DateTime.now();
@@ -164,6 +169,21 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: TSizes.spaceBtwInputFields),
             // Use Obx only for the dynamic search results section
+            /*ElevatedButton(
+              onPressed: () async {
+                await dummyController.clearFirestoreData();
+                Get.snackbar('Success', 'Firestore data cleared successfully');
+              },
+              child: const Text('Clear Firestore Data'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () async {
+                await dummyController.createDummyData();
+                Get.snackbar('Success', 'Dummy data created successfully');
+              },
+              child: const Text('Create Dummy Data'),
+            ),*/
             Expanded(
               child: Obx(
                 () =>

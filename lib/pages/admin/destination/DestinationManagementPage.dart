@@ -55,21 +55,20 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
           (context) => DistanceEditDialog(
             stationName: stationName,
             currentDistances: Map<String, int>.from(currentDistances),
-            onSave: (distances) async {
+            onSave: (String updatedName, Map<String, int> distances) async {
               try {
                 await _adminController.editStation(
                   stationName,
+                  newName: updatedName, // Pass the updated name
                   distances: distances,
                 );
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Distances updated successfully'),
-                  ),
+                  const SnackBar(content: Text('Station updated successfully')),
                 );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Error updating distances: ${e.toString()}'),
+                    content: Text('Error updating station: ${e.toString()}'),
                   ),
                 );
               }
