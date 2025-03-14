@@ -4,7 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:train_app/controllers/FirebaseAdminController.dart';
 import 'package:train_app/pages/admin/RoutesAdminPage.dart';
 import 'package:train_app/pages/admin/TicketVerificationPage.dart';
-import 'package:train_app/pages/admin/DestinationManagementPage.dart';
+import 'package:train_app/pages/admin/destination/DestinationManagementPage.dart';
 import 'package:train_app/pages/admin/train/TrainAdminPage.dart';
 import 'package:train_app/utils/constants/colors.dart';
 
