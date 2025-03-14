@@ -41,12 +41,25 @@ class TrainAdminPage extends StatelessWidget {
                 stream:
                     adminController.firestore.collection('trains').snapshots(),
                 builder: (context, snapshot) {
-                  if (snapshot.hasError)
+                  if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
-                  if (!snapshot.hasData)
+                  }
+                  if (!snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
+                  }
 
                   final trains = snapshot.data!.docs;
+
+                  // Sort trains by date
+                  trains.sort((a, b) {
+                    final aData = a.data() as Map<String, dynamic>;
+                    final bData = b.data() as Map<String, dynamic>;
+                    final aDate =
+                        aData['date'] ?? '1970-01-01'; // Fallback date
+                    final bDate =
+                        bData['date'] ?? '1970-01-01'; // Fallback date
+                    return aDate.compareTo(bDate); // Ascending order
+                  });
 
                   return ListView.builder(
                     itemCount: trains.length,
@@ -55,11 +68,20 @@ class TrainAdminPage extends StatelessWidget {
                       final trainData = train.data() as Map<String, dynamic>;
                       final trainId = train.id;
 
+                      // Safely get the first station and its departure time from the schedule
+                      final schedule =
+                          trainData['schedule'] as Map<String, dynamic>?;
+                      final firstStation = schedule?.keys.first ?? 'Unknown';
+                      final departureTime = schedule?[firstStation] ?? 'N/A';
+
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text('Train on ${trainData['date']}'),
+                        title: Text(
+                          'Train on ${trainData['date'] ?? 'No date'}',
+                        ),
                         subtitle: Text(
-                          ' Seats: ${trainData['seatsLeft']}/${trainData['seatsTotal']}',
+                          'Leaving from $firstStation at $departureTime - '
+                          '${trainData['seatsLeft'] ?? 0}/${trainData['seatsTotal'] ?? 0}',
                         ),
                         trailing: IconButton(
                           icon: const Icon(Iconsax.edit_copy),
