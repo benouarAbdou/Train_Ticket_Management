@@ -36,8 +36,7 @@ class FirebaseController extends GetxController {
       try {
         QuerySnapshot snapshot = await _firestore.collection('stations').get();
         stations.value = snapshot.docs.map((doc) => doc.id).toList();
-      } catch (e) {
-      }
+      } catch (e) {}
     }
   }
 
@@ -78,6 +77,9 @@ class FirebaseController extends GetxController {
               .where('isActive', isEqualTo: true)
               .get();
 
+      // Get current date and time
+      final DateTime now = DateTime.now();
+
       for (var routeDoc in routeSnapshot.docs) {
         final routeData = routeDoc.data() as Map<String, dynamic>;
         final List<dynamic> stationIds = routeData['stationIds'];
@@ -103,17 +105,35 @@ class FirebaseController extends GetxController {
 
             if (schedule.containsKey(departureCity) &&
                 schedule.containsKey(arrivalCity)) {
-              searchResults.add({
-                'id': trainDoc.id,
-                'departureCity': departureCity,
-                'arrivalCity': arrivalCity,
-                'departureTime': schedule[departureCity],
-                'arrivalTime': schedule[arrivalCity],
-                'departureDate': formattedDate,
-                'arrivalDate': formattedDate,
-                'seatsLeft': trainData['seatsLeft'],
-                'price': trainData['pricePerPassenger'],
-              });
+              // Parse departure time from schedule (assuming format "HH:mm")
+              final String departureTimeStr = schedule[departureCity];
+              final List<String> timeParts = departureTimeStr.split(':');
+              final int hour = int.parse(timeParts[0]);
+              final int minute = int.parse(timeParts[1]);
+
+              // Create a DateTime object for the departure date and time
+              final DateTime departureDateTime = DateTime(
+                date.year,
+                date.month,
+                date.day,
+                hour,
+                minute,
+              );
+
+              // Only add the train if the departure time is in the future
+              if (departureDateTime.isAfter(now)) {
+                searchResults.add({
+                  'id': trainDoc.id,
+                  'departureCity': departureCity,
+                  'arrivalCity': arrivalCity,
+                  'departureTime': schedule[departureCity],
+                  'arrivalTime': schedule[arrivalCity],
+                  'departureDate': formattedDate,
+                  'arrivalDate': formattedDate,
+                  'seatsLeft': trainData['seatsLeft'],
+                  'price': trainData['pricePerPassenger'],
+                });
+              }
             }
           }
         }
@@ -123,6 +143,7 @@ class FirebaseController extends GetxController {
         (a, b) => a['departureTime'].compareTo(b['departureTime']),
       );
     } catch (e) {
+      // Handle error if needed (e.g., log it)
     } finally {
       isLoading.value = false;
     }

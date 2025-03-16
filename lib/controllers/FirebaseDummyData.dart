@@ -20,8 +20,7 @@ class FirebaseDummyController extends GetxController {
         }
         await batch.commit();
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   // Create dummy data for testing with Algerian wilayas
@@ -116,8 +115,6 @@ class FirebaseDummyController extends GetxController {
           }
         }
       }
-
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 }

@@ -63,7 +63,6 @@ class FirebaseAdminController extends GetxController {
 
     try {
       if (updates.isNotEmpty) {
-        // If the name changes, handle the document move and update references
         if (newName != null && newName != name) {
           final newStationRef = firestore.collection('stations').doc(newName);
           final data = docSnapshot.data()!;
@@ -96,20 +95,13 @@ class FirebaseAdminController extends GetxController {
             batch.update(routeDoc.reference, {'stationIds': updatedStationIds});
           }
 
-          // Update trains' schedule containing the old station name
-          final trainsQuery =
-              await firestore
-                  .collection('trains')
-                  .where(
-                    'schedule.$name',
-                    isNotEqualTo: null,
-                  ) // Query trains with the old station name in schedule
-                  .get();
+          // Fetch all trains and filter those with the old station name in their schedule
+          final trainsQuery = await firestore.collection('trains').get();
 
           for (final trainDoc in trainsQuery.docs) {
             final trainData = trainDoc.data();
             final Map<String, dynamic> schedule = Map<String, dynamic>.from(
-              trainData['schedule'],
+              trainData['schedule'] ?? {},
             );
 
             // Check if the old name exists in the schedule
@@ -127,10 +119,10 @@ class FirebaseAdminController extends GetxController {
           // Normal update without renaming
           await stationRef.update(updates);
         }
-      } else {}
+      }
     } catch (e) {
-      // Consider re-throwing the error or handling it based on your app's needs
-      // throw e;
+      print('Error updating station: $e');
+      rethrow; // Rethrow the error for debugging
     }
   }
 

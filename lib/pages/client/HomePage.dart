@@ -225,6 +225,20 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                 ),
               ),
+              /*ElevatedButton(
+                onPressed: () async {
+                  await dummyController.createDummyData();
+                  Get.snackbar('Success', 'Dummy data created successfully');
+                },
+                child: const Text('Create Dummy Data'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await dummyController.clearFirestoreData();
+                  Get.snackbar('Success', 'Dummy data created successfully');
+                },
+                child: const Text('Create Dummy Data'),
+              ),*/
             ],
           ),
         ),
