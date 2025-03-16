@@ -95,52 +95,53 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Stations Management',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: TSizes.spaceBtwItems),
-            // Add New Station Form
-            Form(
-              key: _formKey,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _stationNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'New Station Name',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter a station name';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: TSizes.spaceBtwItems),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.all(20),
-                    ),
-                    onPressed: _addNewStation,
-                    child: const Text('Add'),
-                  ),
-                ],
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Stations Management',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            ),
-
-            // Stations List
-            Expanded(
-              child: FutureBuilder<QuerySnapshot>(
+              const SizedBox(height: TSizes.spaceBtwItems),
+              // Add New Station Form
+              Form(
+                key: _formKey,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _stationNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'New Station Name',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a station name';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: TSizes.spaceBtwItems),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.all(20),
+                      ),
+                      onPressed: _addNewStation,
+                      child: const Text('Add'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: TSizes.spaceBtwItems), // Add some spacing
+              // Stations List
+              FutureBuilder<QuerySnapshot>(
                 future: _stationsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
@@ -155,38 +156,43 @@ class _DestinationManagementPageState extends State<DestinationManagementPage> {
                     return const Center(child: Text('No stations found'));
                   }
 
-                  return ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (context, index) {
-                      final station = snapshot.data!.docs[index];
-                      final data = station.data() as Map<String, dynamic>;
-                      final isActive = data['isActive'] as bool;
+                  return SizedBox(
+                    height:
+                        MediaQuery.of(context).size.height *
+                        0.6, // Adjust height as needed
+                    child: ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        final station = snapshot.data!.docs[index];
+                        final data = station.data() as Map<String, dynamic>;
+                        final isActive = data['isActive'] as bool;
 
-                      return StationListTile(
-                        stationName: station.id,
-                        isActive: isActive,
-                        distances: data['distances'] as Map<String, dynamic>,
-                        onToggleActive: () async {
-                          await _adminController.toggleStationActive(
-                            station.id,
-                            !isActive,
-                          );
-                          _refreshStations(); // Refresh after toggling
-                        },
-                        onEditDistances: () {
-                          _showDistanceDialog(
-                            station.id,
-                            data['distances'] as Map<String, dynamic>,
-                          );
-                        },
-                      );
-                    },
+                        return StationListTile(
+                          stationName: station.id,
+                          isActive: isActive,
+                          distances: data['distances'] as Map<String, dynamic>,
+                          onToggleActive: () async {
+                            await _adminController.toggleStationActive(
+                              station.id,
+                              !isActive,
+                            );
+                            _refreshStations(); // Refresh after toggling
+                          },
+                          onEditDistances: () {
+                            _showDistanceDialog(
+                              station.id,
+                              data['distances'] as Map<String, dynamic>,
+                            );
+                          },
+                        );
+                      },
+                    ),
                   );
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

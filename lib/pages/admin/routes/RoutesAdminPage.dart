@@ -149,6 +149,8 @@ Widget buildStationSelector(RxList<String> selectedStations) {
                     ? const Text('No stations selected')
                     : Expanded(
                       child: ReorderableListView(
+                        physics: const BouncingScrollPhysics(),
+
                         onReorder: (oldIndex, newIndex) {
                           if (newIndex > oldIndex) newIndex--;
                           final station = selectedStations.removeAt(oldIndex);

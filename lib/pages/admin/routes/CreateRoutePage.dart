@@ -16,30 +16,39 @@ class CreateRoutePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Create New Route')),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
-        child: Column(
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Route Name'),
-            ),
-            const SizedBox(height: 16),
-            Expanded(child: buildStationSelector(selectedStations)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Get.back(),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: _createRoute,
-                  child: const Text('Create'),
-                ),
-              ],
-            ),
-          ],
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
+          child: Column(
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Route Name'),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height:
+                    MediaQuery.of(context).size.height *
+                    0.6, // Limit the height
+                child: buildStationSelector(selectedStations),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Get.back(),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: _createRoute,
+                    child: const Text('Create'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

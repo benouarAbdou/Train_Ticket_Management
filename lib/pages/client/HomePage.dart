@@ -66,176 +66,167 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          Theme.of(
-            context,
-          ).scaffoldBackgroundColor, // Use theme background color
-      body: Padding(
-        padding: const EdgeInsets.all(TSizes.defaultSpace),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: TSizes.appBarHeight / 2),
-            const Text(
-              'Where do you wanna go?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: TSizes.spaceBtwInputFields),
-            // Departure Station TypeAheadField (No Obx needed unless stations is dynamic)
-            TypeAheadField(
-              controller: _departController,
-              suggestionsCallback: (pattern) {
-                return firebaseController.stations
-                    .where(
-                      (station) =>
-                          station.toLowerCase().contains(pattern.toLowerCase()),
-                    )
-                    .toList();
-              },
-              itemBuilder: (context, suggestion) {
-                return ListTile(title: Text(suggestion));
-              },
-              onSelected: (suggestion) {
-                _departController.text = suggestion;
-              },
-              builder: (context, controller, focusNode) {
-                return TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'Departure Station',
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: TSizes.spaceBtwInputFields),
-            // Destination Station TypeAheadField (No Obx needed unless stations is dynamic)
-            TypeAheadField(
-              controller: _destinationController,
-              suggestionsCallback: (pattern) {
-                return firebaseController.stations
-                    .where(
-                      (station) =>
-                          station.toLowerCase().contains(pattern.toLowerCase()),
-                    )
-                    .toList();
-              },
-              itemBuilder: (context, suggestion) {
-                return ListTile(title: Text(suggestion));
-              },
-              onSelected: (suggestion) {
-                _destinationController.text = suggestion;
-              },
-              builder: (context, controller, focusNode) {
-                return TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  decoration: const InputDecoration(
-                    labelText: 'Destination Station',
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: TSizes.spaceBtwInputFields),
-            TextField(
-              keyboardType: TextInputType.number,
-              controller: _passengersController,
-              decoration: const InputDecoration(
-                labelText: 'Number of passengers',
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.all(TSizes.defaultSpace),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: TSizes.appBarHeight / 2),
+              const Text(
+                'Where do you wanna go?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: TSizes.spaceBtwInputFields / 2),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _selectedDate == null
-                        ? 'Select Date'
-                        : 'Date: ${_selectedDate!.toLocal().toString().split(' ')[0]}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => _selectDate(context),
-                  child: const Text('Choose Date'),
-                ),
-              ],
-            ),
-            const SizedBox(height: TSizes.spaceBtwInputFields / 2),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _searchTrains,
-                child: const Text('Search'),
-              ),
-            ),
-            const SizedBox(height: TSizes.spaceBtwInputFields),
-            // Use Obx only for the dynamic search results section
-            /*ElevatedButton(
-              onPressed: () async {
-                await dummyController.clearFirestoreData();
-                Get.snackbar('Success', 'Firestore data cleared successfully');
-              },
-              child: const Text('Clear Firestore Data'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () async {
-                await dummyController.createDummyData();
-                Get.snackbar('Success', 'Dummy data created successfully');
-              },
-              child: const Text('Create Dummy Data'),
-            ),*/
-            Expanded(
-              child: Obx(
-                () =>
-                    firebaseController.isLoading.value
-                        ? const Center(child: CircularProgressIndicator())
-                        : firebaseController.searchResults.isEmpty
-                        ? const Center(child: Text('No trains found'))
-                        : ListView.builder(
-                          itemCount: firebaseController.searchResults.length,
-                          padding: EdgeInsets.zero,
-                          itemBuilder: (context, index) {
-                            final train =
-                                firebaseController.searchResults[index];
-                            return TrainTicket(
-                              departureCity: train['departureCity'],
-                              arrivalCity: train['arrivalCity'],
-                              departureTime: train['departureTime'],
-                              arrivalTime: train['arrivalTime'],
-                              departureDate: train['departureDate'],
-                              arrivalDate: train['arrivalDate'],
-                              seatsLeft: train['seatsLeft'],
-                              price: train['price'],
-                              numberOfPassengers:
-                                  int.tryParse(_passengersController.text) ?? 1,
-                              onTap: () {
-                                Get.to(
-                                  () => BookingScreen(
-                                    departureCity: train['departureCity'],
-                                    arrivalCity: train['arrivalCity'],
-                                    departureTime: train['departureTime'],
-                                    arrivalTime: train['arrivalTime'],
-                                    departureDate: train['departureDate'],
-                                    arrivalDate: train['arrivalDate'],
-                                    price: train['price'],
-                                    seatsLeft: train['seatsLeft'],
-                                    numberOfPassengers:
-                                        int.tryParse(
-                                          _passengersController.text,
-                                        ) ??
-                                        1,
-                                    trainId: train['id'],
-                                  ),
-                                );
-                              },
-                            );
-                          },
+              const SizedBox(height: TSizes.spaceBtwInputFields),
+              // Departure Station TypeAheadField
+              TypeAheadField(
+                controller: _departController,
+                suggestionsCallback: (pattern) {
+                  return firebaseController.stations
+                      .where(
+                        (station) => station.toLowerCase().contains(
+                          pattern.toLowerCase(),
                         ),
+                      )
+                      .toList();
+                },
+                itemBuilder: (context, suggestion) {
+                  return ListTile(title: Text(suggestion));
+                },
+                onSelected: (suggestion) {
+                  _departController.text = suggestion;
+                },
+                builder: (context, controller, focusNode) {
+                  return TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    decoration: const InputDecoration(
+                      labelText: 'Departure Station',
+                    ),
+                  );
+                },
               ),
-            ),
-          ],
+              const SizedBox(height: TSizes.spaceBtwInputFields),
+              // Destination Station TypeAheadField
+              TypeAheadField(
+                controller: _destinationController,
+                suggestionsCallback: (pattern) {
+                  return firebaseController.stations
+                      .where(
+                        (station) => station.toLowerCase().contains(
+                          pattern.toLowerCase(),
+                        ),
+                      )
+                      .toList();
+                },
+                itemBuilder: (context, suggestion) {
+                  return ListTile(title: Text(suggestion));
+                },
+                onSelected: (suggestion) {
+                  _destinationController.text = suggestion;
+                },
+                builder: (context, controller, focusNode) {
+                  return TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    decoration: const InputDecoration(
+                      labelText: 'Destination Station',
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: TSizes.spaceBtwInputFields),
+              TextField(
+                keyboardType: TextInputType.number,
+                controller: _passengersController,
+                decoration: const InputDecoration(
+                  labelText: 'Number of passengers',
+                ),
+              ),
+              const SizedBox(height: TSizes.spaceBtwInputFields / 2),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _selectedDate == null
+                          ? 'Select Date'
+                          : 'Date: ${_selectedDate!.toLocal().toString().split(' ')[0]}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _selectDate(context),
+                    child: const Text('Choose Date'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: TSizes.spaceBtwInputFields / 2),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _searchTrains,
+                  child: const Text('Search'),
+                ),
+              ),
+              const SizedBox(height: TSizes.spaceBtwInputFields),
+              // Use a SizedBox with a fixed height instead of Expanded for the ListView
+              SizedBox(
+                height:
+                    MediaQuery.of(context).size.height *
+                    0.4, // Adjust height as needed
+                child: Obx(
+                  () =>
+                      firebaseController.isLoading.value
+                          ? const Center(child: CircularProgressIndicator())
+                          : firebaseController.searchResults.isEmpty
+                          ? const Center(child: Text('No trains found'))
+                          : ListView.builder(
+                            itemCount: firebaseController.searchResults.length,
+                            padding: EdgeInsets.zero,
+                            itemBuilder: (context, index) {
+                              final train =
+                                  firebaseController.searchResults[index];
+                              return TrainTicket(
+                                departureCity: train['departureCity'],
+                                arrivalCity: train['arrivalCity'],
+                                departureTime: train['departureTime'],
+                                arrivalTime: train['arrivalTime'],
+                                departureDate: train['departureDate'],
+                                arrivalDate: train['arrivalDate'],
+                                seatsLeft: train['seatsLeft'],
+                                price: train['price'],
+                                numberOfPassengers:
+                                    int.tryParse(_passengersController.text) ??
+                                    1,
+                                onTap: () {
+                                  Get.to(
+                                    () => BookingScreen(
+                                      departureCity: train['departureCity'],
+                                      arrivalCity: train['arrivalCity'],
+                                      departureTime: train['departureTime'],
+                                      arrivalTime: train['arrivalTime'],
+                                      departureDate: train['departureDate'],
+                                      arrivalDate: train['arrivalDate'],
+                                      price: train['price'],
+                                      seatsLeft: train['seatsLeft'],
+                                      numberOfPassengers:
+                                          int.tryParse(
+                                            _passengersController.text,
+                                          ) ??
+                                          1,
+                                      trainId: train['id'],
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

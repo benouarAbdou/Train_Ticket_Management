@@ -21,17 +21,23 @@ class EditRoutePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Route')),
-      body: Padding(
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
-
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: nameController,
               decoration: const InputDecoration(labelText: 'Route Name'),
             ),
             const SizedBox(height: 16),
-            Expanded(child: buildStationSelector(selectedStations)),
+            // Remove Expanded and let the content take its natural height
+            SizedBox(
+              height:
+                  MediaQuery.of(context).size.height * 0.6, // Limit the height
+              child: buildStationSelector(selectedStations),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
