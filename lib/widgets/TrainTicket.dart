@@ -60,7 +60,8 @@ class TrainTicket extends StatelessWidget {
       child: Container(
         margin: EdgeInsets.symmetric(vertical: TSizes.sm),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).scaffoldBackgroundColor,
+
           borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
         ),
         child: Stack(

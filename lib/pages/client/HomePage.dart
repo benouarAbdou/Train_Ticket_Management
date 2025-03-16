@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:train_app/controllers/FirebaseController.dart';
 import 'package:train_app/controllers/FirebaseDummyData.dart';
 import 'package:train_app/pages/client/BookingScreen.dart';
-import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 import 'package:train_app/widgets/TrainTicket.dart';
 
@@ -67,7 +66,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: TColors.bg,
+      backgroundColor:
+          Theme.of(
+            context,
+          ).scaffoldBackgroundColor, // Use theme background color
       body: Padding(
         padding: const EdgeInsets.all(TSizes.defaultSpace),
         child: Column(

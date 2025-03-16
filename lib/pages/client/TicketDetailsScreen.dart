@@ -74,7 +74,8 @@ Ticket ID: ${ticketId ?? 'Not provided'}
     final displayStatus = isExpired ? 'Expired' : (status ?? 'Unknown');
 
     return Scaffold(
-      backgroundColor: TColors.bg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       appBar: AppBar(title: const Text('Boarding Pass')),
       body: Padding(
         padding: const EdgeInsets.all(TSizes.defaultSpace),
@@ -85,7 +86,8 @@ Ticket ID: ${ticketId ?? 'Not provided'}
               horizontal: TSizes.defaultSpace,
             ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).scaffoldBackgroundColor,
+
               borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
             ),
             child: Stack(

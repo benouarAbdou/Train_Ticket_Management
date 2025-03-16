@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:train_app/controllers/FirebaseController.dart';
 import 'package:train_app/controllers/HiveController.dart';
 import 'package:train_app/pages/client/TicketDetailsScreen.dart';
-import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 import 'package:train_app/utils/services/ConnectivityService.dart';
 import 'package:train_app/widgets/TrainTicket.dart';
@@ -44,7 +43,7 @@ class BookedTicketsScreen extends StatelessWidget {
     String userId = hiveController.getUserIdSync();
 
     return Scaffold(
-      backgroundColor: TColors.bg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(TSizes.defaultSpace),
         child: Column(

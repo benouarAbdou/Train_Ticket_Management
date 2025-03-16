@@ -34,7 +34,8 @@ class AdminNavigationMenu extends StatelessWidget {
         () => NavigationBar(
           height: 80,
           elevation: 0,
-          backgroundColor: TColors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
           indicatorColor: TColors.black.withOpacity(0.1),
           selectedIndex: controller.selectedIndex.value,
           onDestinationSelected:
