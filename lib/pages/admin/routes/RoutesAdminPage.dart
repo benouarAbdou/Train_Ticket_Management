@@ -129,7 +129,7 @@ Widget buildStationSelector(RxList<String> selectedStations) {
         return Center(child: Text('Error: ${snapshot.error}'));
       }
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return Text("Loading ...");
+        return const Text("Loading ...");
       }
       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
         return const Text('No stations available');
@@ -138,19 +138,19 @@ Widget buildStationSelector(RxList<String> selectedStations) {
       final stations = snapshot.data!.docs;
 
       return Column(
-        mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const Text('Stations:'),
           Obx(
             () =>
                 selectedStations.isEmpty
                     ? const Text('No stations selected')
-                    : Expanded(
+                    : SizedBox(
+                      height:
+                          MediaQuery.of(context).size.height *
+                          0.4, // Limit the height
                       child: ReorderableListView(
-                        physics: const BouncingScrollPhysics(),
-
+                        physics: BouncingScrollPhysics(),
                         onReorder: (oldIndex, newIndex) {
                           if (newIndex > oldIndex) newIndex--;
                           final station = selectedStations.removeAt(oldIndex);
@@ -162,13 +162,19 @@ Widget buildStationSelector(RxList<String> selectedStations) {
                                 (doc) => doc['name'] == stationId,
                               );
                               return ListTile(
-                                contentPadding: EdgeInsets.zero,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                ),
                                 key: ValueKey(stationId),
                                 title: Text(station['name']),
                                 trailing: IconButton(
                                   icon: const Icon(Icons.delete),
                                   onPressed:
                                       () => selectedStations.remove(stationId),
+                                ),
+                                leading: ReorderableDragStartListener(
+                                  index: selectedStations.indexOf(stationId),
+                                  child: const Icon(Icons.drag_indicator),
                                 ),
                               );
                             }).toList(),

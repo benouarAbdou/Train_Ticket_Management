@@ -18,7 +18,7 @@ class CustomToggleSwitch extends StatelessWidget {
     required this.isActive,
     required this.onToggle,
     this.minWidth = 40.0,
-    this.minHeight = 20.0,
+    this.minHeight = 30.0,
     this.cornerRadius = 10.0,
     this.activeBgColor = TColors.buttonPrimary,
     this.inactiveBgColor = Colors.grey,
