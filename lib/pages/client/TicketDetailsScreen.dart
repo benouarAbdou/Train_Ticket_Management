@@ -167,14 +167,19 @@ class TicketDetailsScreen extends StatelessWidget {
                       // Barcode Widget
                       if (ticketId != null) ...[
                         Center(
-                          child: SizedBox(
-                            width: 200,
-                            height: 50,
+                          child: Container(
+                            padding: EdgeInsets.all(8),
+                            color:
+                                Theme.of(context).brightness == Brightness.light
+                                    ? TColors.white
+                                    : TColors.white,
+                            width: 250,
+                            height: 75,
                             child: BarcodeWidget(
                               barcode:
                                   Barcode.code128(), // Using Code128 format
                               data: ticketId!,
-                              color: TColors.black,
+                              color: TColors.black, // Use black in light mode
                               drawText:
                                   false, // Set to true if you want the ticketId text below barcode
                             ),
