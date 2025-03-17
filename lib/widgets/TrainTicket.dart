@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Add this for better date parsing
 import 'package:train_app/utils/constants/colors.dart';
@@ -14,10 +16,11 @@ class TrainTicket extends StatelessWidget {
   final int? seatsLeft;
   final double price;
   final int numberOfPassengers;
+  double? distance;
   final String? status;
   final GestureTapCallback onTap;
 
-  const TrainTicket({
+  TrainTicket({
     super.key,
     required this.departureCity,
     required this.arrivalCity,
@@ -29,6 +32,7 @@ class TrainTicket extends StatelessWidget {
     required this.price,
     required this.numberOfPassengers,
     this.status,
+    this.distance, // Added to constructor parameters
     required this.onTap,
   });
 
@@ -104,7 +108,11 @@ class TrainTicket extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const Center(child: Icon(Icons.train)),
+                      Center(
+                        child: Column(
+                          children: [Icon(Icons.train), Text("$distance km")],
+                        ),
+                      ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [

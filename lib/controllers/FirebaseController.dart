@@ -77,7 +77,6 @@ class FirebaseController extends GetxController {
               .where('isActive', isEqualTo: true)
               .get();
 
-      // Get current date and time
       final DateTime now = DateTime.now();
 
       for (var routeDoc in routeSnapshot.docs) {
@@ -105,13 +104,11 @@ class FirebaseController extends GetxController {
 
             if (schedule.containsKey(departureCity) &&
                 schedule.containsKey(arrivalCity)) {
-              // Parse departure time from schedule (assuming format "HH:mm")
               final String departureTimeStr = schedule[departureCity];
               final List<String> timeParts = departureTimeStr.split(':');
               final int hour = int.parse(timeParts[0]);
               final int minute = int.parse(timeParts[1]);
 
-              // Create a DateTime object for the departure date and time
               final DateTime departureDateTime = DateTime(
                 date.year,
                 date.month,
@@ -120,8 +117,45 @@ class FirebaseController extends GetxController {
                 minute,
               );
 
-              // Only add the train if the departure time is in the future
               if (departureDateTime.isAfter(now)) {
+                // Calculate total distance for the route
+                double totalDistance = 0.0;
+
+                // Get the segment of the route from departure to arrival
+                final List<String> routeSegment =
+                    stationIds
+                        .sublist(departureIndex, arrivalIndex + 1)
+                        .cast<String>();
+
+                // Fetch distances between consecutive stations
+                for (int i = 0; i < routeSegment.length - 1; i++) {
+                  final String fromStation = routeSegment[i];
+                  final String toStation = routeSegment[i + 1];
+
+                  // Fetch the 'fromStation' document from the stations collection
+                  final DocumentSnapshot stationDoc =
+                      await _firestore
+                          .collection('stations')
+                          .doc(fromStation)
+                          .get();
+
+                  if (stationDoc.exists) {
+                    final stationData =
+                        stationDoc.data() as Map<String, dynamic>;
+                    final distances =
+                        stationData['distances'] as Map<String, dynamic>;
+
+                    // Add the distance from 'fromStation' to 'toStation'
+                    if (distances.containsKey(toStation)) {
+                      totalDistance += (distances[toStation] as num).toDouble();
+                    } else {
+                      // If direct distance isn't available, you might need to handle this case
+                      totalDistance +=
+                          0.0; // Or throw an error, depending on your needs
+                    }
+                  }
+                }
+
                 searchResults.add({
                   'id': trainDoc.id,
                   'departureCity': departureCity,
@@ -132,6 +166,8 @@ class FirebaseController extends GetxController {
                   'arrivalDate': formattedDate,
                   'seatsLeft': trainData['seatsLeft'],
                   'price': trainData['pricePerPassenger'],
+                  'totalDistance':
+                      totalDistance, // Add total distance to the result
                 });
               }
             }
@@ -143,7 +179,8 @@ class FirebaseController extends GetxController {
         (a, b) => a['departureTime'].compareTo(b['departureTime']),
       );
     } catch (e) {
-      // Handle error if needed (e.g., log it)
+      // Handle error (e.g., log it or rethrow)
+      print("Error occurred: $e");
     } finally {
       isLoading.value = false;
     }

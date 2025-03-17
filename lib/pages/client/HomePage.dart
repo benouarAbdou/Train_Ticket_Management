@@ -197,6 +197,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 arrivalDate: train['arrivalDate'],
                                 seatsLeft: train['seatsLeft'],
                                 price: train['price'],
+                                distance: train['totalDistance'],
                                 numberOfPassengers:
                                     int.tryParse(_passengersController.text) ??
                                     1,
