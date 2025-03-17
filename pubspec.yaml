@@ -52,6 +52,8 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   toggle_switch: ^2.3.0
   print_remover: ^1.0.2
+  barcode: ^2.2.9
+  barcode_widget: ^2.0.4
 
 dev_dependencies:
   flutter_test:

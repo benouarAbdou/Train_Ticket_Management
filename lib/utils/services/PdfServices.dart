@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:open_file/open_file.dart';
 import 'package:train_app/controllers/HiveController.dart';
+import 'package:barcode/barcode.dart' as bc; // Add this import
 
 Future<void> generateAndOpenTicketPdf({
   required BuildContext context,
@@ -22,6 +23,13 @@ Future<void> generateAndOpenTicketPdf({
   String? ticketId,
 }) async {
   final pdf = pw.Document();
+
+  // Create barcode
+  final barcode = bc.Barcode.code128();
+  final svg =
+      ticketId != null
+          ? barcode.toSvg(ticketId, width: 200, height: 80, fontHeight: 0)
+          : null;
 
   pdf.addPage(
     pw.Page(
@@ -220,23 +228,28 @@ Future<void> generateAndOpenTicketPdf({
                   pw.SizedBox(height: 15),
                 ],
 
-                // Barcode Placeholder
+                // Barcode
                 pw.Divider(),
                 pw.SizedBox(height: 10),
-                pw.Container(
-                  height: 50,
-                  width: double.infinity,
-                  decoration: pw.BoxDecoration(
-                    border: pw.Border.all(),
-                    color: pw.PdfColors.grey300,
-                  ),
-                  child: pw.Center(
-                    child: pw.Text(
-                      'Barcode/QR Code Placeholder (Ticket ID: ${ticketId ?? 'N/A'})',
-                      style: const pw.TextStyle(fontSize: 12),
+                if (svg != null)
+                  pw.Center(
+                    child: pw.SvgImage(svg: svg, width: 300, height: 80),
+                  )
+                else
+                  pw.Container(
+                    height: 50,
+                    width: double.infinity,
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(),
+                      color: pw.PdfColors.grey300,
+                    ),
+                    child: pw.Center(
+                      child: pw.Text(
+                        'Barcode/QR Code Placeholder (Ticket ID: N/A)',
+                        style: const pw.TextStyle(fontSize: 12),
+                      ),
                     ),
                   ),
-                ),
                 pw.SizedBox(height: 10),
 
                 // Footer

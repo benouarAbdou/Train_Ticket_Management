@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // For date parsing
-import 'package:share_plus/share_plus.dart';
+import 'package:barcode_widget/barcode_widget.dart'; // Updated import
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 import 'package:train_app/utils/services/PdfServices.dart';
+import 'package:train_app/utils/services/TicketUtils.dart';
 
 class TicketDetailsScreen extends StatelessWidget {
   final String departureCity;
@@ -35,47 +35,16 @@ class TicketDetailsScreen extends StatelessWidget {
     required this.passengerId,
   });
 
-  // Share ticket details
-  void _shareTicket() {
-    final ticketDetails = '''
-From: $departureCity at $departureTime, $departureDate
-To: $arrivalCity at $arrivalTime, $arrivalDate
-Passengers: ${numberOfPassengers ?? 1}
-Price: \$${price.toStringAsFixed(0)}
-Status: ${status ?? 'Unknown'}
-Passenger Names: ${passengerNames?.join(', ') ?? 'Not provided'}
-Ticket ID: ${ticketId ?? 'Not provided'}
-''';
-    Share.share(ticketDetails, subject: 'Train Ticket Details');
-  }
-
-  // Helper method to check if ticket is expired
-  bool _isTicketExpired() {
-    try {
-      // Get the current date and time
-      final currentDateTime = DateTime.now();
-
-      // Parse the arrival date and time
-      final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
-      final departureDateTime = dateFormat.parse(
-        '$departureDate $departureTime',
-      );
-
-      // Compare arrival time with the current time
-      return departureDateTime.isBefore(currentDateTime);
-    } catch (e) {
-      return false; // Assume not expired if parsing fails
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isExpired = _isTicketExpired();
+    final isExpired = TicketUtils.isTicketExpired(
+      departureDate: departureDate,
+      departureTime: departureTime,
+    );
     final displayStatus = isExpired ? 'Expired' : (status ?? 'Unknown');
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
       appBar: AppBar(title: const Text('Boarding Pass')),
       body: Padding(
         padding: const EdgeInsets.all(TSizes.defaultSpace),
@@ -87,15 +56,12 @@ Ticket ID: ${ticketId ?? 'Not provided'}
             ),
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
-
               borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
             ),
             child: Stack(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    top: TSizes.lg,
-                  ), // Space for status container
+                  padding: const EdgeInsets.only(top: TSizes.lg),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,12 +164,43 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                         ).textTheme.bodyLarge!.copyWith(color: TColors.primary),
                       ),
                       const SizedBox(height: TSizes.spaceBtwItems),
+                      // Barcode Widget
+                      if (ticketId != null) ...[
+                        Center(
+                          child: SizedBox(
+                            width: 200,
+                            height: 50,
+                            child: BarcodeWidget(
+                              barcode:
+                                  Barcode.code128(), // Using Code128 format
+                              data: ticketId!,
+                              color: TColors.black,
+                              drawText:
+                                  false, // Set to true if you want the ticketId text below barcode
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: TSizes.spaceBtwItems),
+                      ],
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: _shareTicket,
+                              onPressed:
+                                  () => TicketUtils.shareTicket(
+                                    departureCity: departureCity,
+                                    arrivalCity: arrivalCity,
+                                    departureTime: departureTime,
+                                    arrivalTime: arrivalTime,
+                                    departureDate: departureDate,
+                                    arrivalDate: arrivalDate,
+                                    price: price,
+                                    numberOfPassengers: numberOfPassengers,
+                                    status: status,
+                                    passengerNames: passengerNames,
+                                    ticketId: ticketId,
+                                  ),
                               child: const Text('Share Ticket'),
                             ),
                           ),
@@ -233,7 +230,6 @@ Ticket ID: ${ticketId ?? 'Not provided'}
                     ],
                   ),
                 ),
-                // Status container at top-right
                 Positioned(
                   top: 0,
                   right: 0,
