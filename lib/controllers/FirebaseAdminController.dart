@@ -95,20 +95,18 @@ class FirebaseAdminController extends GetxController {
             batch.update(routeDoc.reference, {'stationIds': updatedStationIds});
           }
 
-          // Fetch all trains and filter those with the old station name in their schedule
+          // Update trains with the old station name in their schedule
           final trainsQuery = await firestore.collection('trains').get();
-
           for (final trainDoc in trainsQuery.docs) {
             final trainData = trainDoc.data();
             final Map<String, dynamic> schedule = Map<String, dynamic>.from(
               trainData['schedule'] ?? {},
             );
 
-            // Check if the old name exists in the schedule
             if (schedule.containsKey(name)) {
-              final time = schedule[name]; // Preserve the time
-              schedule.remove(name); // Remove old key
-              schedule[newName] = time; // Add new key with the same time
+              final time = schedule[name];
+              schedule.remove(name);
+              schedule[newName] = time;
               batch.update(trainDoc.reference, {'schedule': schedule});
             }
           }
@@ -118,11 +116,89 @@ class FirebaseAdminController extends GetxController {
         } else {
           // Normal update without renaming
           await stationRef.update(updates);
+
+          // If distances are updated, ensure reverse distances are consistent
+          if (distances != null) {
+            final batch = firestore.batch();
+
+            // Get all routes to check for reverse distances
+            final routesQuery = await firestore.collection('routes').get();
+
+            for (final routeDoc in routesQuery.docs) {
+              final routeData = routeDoc.data();
+              final List<String> stationIds = List<String>.from(
+                routeData['stationIds'],
+              );
+
+              // Check each pair of consecutive stations
+              for (int i = 0; i < stationIds.length - 1; i++) {
+                final fromStation = stationIds[i];
+                final toStation = stationIds[i + 1];
+
+                // If the updated station is 'fromStation'
+                if (fromStation == name && distances.containsKey(toStation)) {
+                  final distanceAB = distances[toStation];
+                  final reverseStationRef = firestore
+                      .collection('stations')
+                      .doc(toStation);
+
+                  // Fetch the reverse station data
+                  final reverseDoc = await reverseStationRef.get();
+                  if (reverseDoc.exists) {
+                    final reverseData =
+                        reverseDoc.data() as Map<String, dynamic>;
+                    final reverseDistances = Map<String, int>.from(
+                      reverseData['distances'] ?? {},
+                    );
+
+                    // Update B -> A distance if it exists in the route
+                    if (stationIds.contains(toStation) &&
+                        stationIds.contains(name)) {
+                      reverseDistances[name] = distanceAB!;
+                      batch.update(reverseStationRef, {
+                        'distances': reverseDistances,
+                      });
+                    }
+                  }
+                }
+
+                // If the updated station is 'toStation'
+                if (toStation == name && distances.containsKey(fromStation)) {
+                  final distanceBA = distances[fromStation];
+                  final reverseStationRef = firestore
+                      .collection('stations')
+                      .doc(fromStation);
+
+                  // Fetch the reverse station data
+                  final reverseDoc = await reverseStationRef.get();
+                  if (reverseDoc.exists) {
+                    final reverseData =
+                        reverseDoc.data() as Map<String, dynamic>;
+                    final reverseDistances = Map<String, int>.from(
+                      reverseData['distances'] ?? {},
+                    );
+
+                    // Update A -> B distance if it exists in the route
+                    if (stationIds.contains(fromStation) &&
+                        stationIds.contains(name)) {
+                      reverseDistances[name] = distanceBA!;
+                      batch.update(reverseStationRef, {
+                        'distances': reverseDistances,
+                      });
+                    }
+                  }
+                }
+              }
+            }
+
+            // Commit the batch to update reverse distances
+            await batch.commit();
+          }
         }
       }
     } catch (e) {
       print('Error updating station: $e');
-      rethrow; // Rethrow the error for debugging
+      rethrow;
     }
   }
 
