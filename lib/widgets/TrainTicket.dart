@@ -111,7 +111,9 @@ class TrainTicket extends StatelessWidget {
                           children: [
                             Icon(Icons.train),
                             Text(
-                              "$distance km",
+                              distance == null || distance == 0
+                                  ? ""
+                                  : "$distance km",
                               style: Theme.of(context).textTheme.labelSmall,
                             ),
                           ],

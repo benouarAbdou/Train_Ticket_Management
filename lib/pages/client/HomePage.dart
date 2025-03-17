@@ -183,6 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           : firebaseController.searchResults.isEmpty
                           ? const Center(child: Text('No trains found'))
                           : ListView.builder(
+                            physics: BouncingScrollPhysics(),
                             itemCount: firebaseController.searchResults.length,
                             padding: EdgeInsets.zero,
                             itemBuilder: (context, index) {
@@ -226,20 +227,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                 ),
               ),
-              /*ElevatedButton(
-                onPressed: () async {
-                  await dummyController.createDummyData();
-                  Get.snackbar('Success', 'Dummy data created successfully');
-                },
-                child: const Text('Create Dummy Data'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  await dummyController.clearFirestoreData();
-                  Get.snackbar('Success', 'Dummy data created successfully');
-                },
-                child: const Text('Create Dummy Data'),
-              ),*/
             ],
           ),
         ),

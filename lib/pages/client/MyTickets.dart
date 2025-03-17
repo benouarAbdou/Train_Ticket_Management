@@ -170,6 +170,8 @@ class BookedTicketsScreen extends StatelessWidget {
                     final bookings = snapshot.data!;
 
                     return ListView.builder(
+                      physics: AlwaysScrollableScrollPhysics(),
+
                       padding: const EdgeInsets.all(0),
                       itemCount: bookings.length,
                       itemBuilder: (context, index) {
