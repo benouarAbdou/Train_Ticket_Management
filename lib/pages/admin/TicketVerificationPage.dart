@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:train_app/controllers/FirebaseAdminController.dart';
 import 'package:train_app/pages/client/TicketDetailsScreen.dart';
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
+import 'package:train_app/utils/services/TicketUtils.dart';
 import 'package:train_app/widgets/TrainTicket.dart';
 
 class TicketVerificationPage extends StatefulWidget {
@@ -27,43 +30,57 @@ class _TicketVerificationPageState extends State<TicketVerificationPage> {
     super.dispose();
   }
 
-  Future<void> _verifyTicket() async {
-    FocusScope.of(context).unfocus();
-
-    final result = await _adminController.verifyTicket(
-      ticketId: _ticketIdController.text,
-      onError:
-          (error) => ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(error))),
-      onLoading: (loading) => setState(() => _isLoading = loading),
+  Future<void> _scanBarcode() async {
+    String? res = await SimpleBarcodeScanner.scanBarcode(
+      context,
+      barcodeAppBar: const BarcodeAppBar(
+        appBarTitle: 'Scan Ticket Barcode',
+        centerTitle: true,
+        enableBackButton: true,
+        backButtonIcon: Icon(Icons.arrow_back),
+      ),
+      isShowFlashIcon: true,
+      delayMillis: 2000,
+      cameraFace: CameraFace.back, // Using rear camera for better quality
     );
-    if (result != null) {
-      setState(() => _ticketDetails = result);
+
+    if (res!.isNotEmpty && res != '-1') {
+      // -1 is returned when scanner is closed without scanning
+      _ticketIdController.text = res;
+      await _verifyTicket();
     }
   }
 
-  Future<void> _markTicketAsUsed() async {
-    await _adminController.markTicketAsUsed(
+  Future<void> _verifyTicket() async {
+    FocusScope.of(context).unfocus();
+    setState(() => _isLoading = true);
+    final result = await TicketUtils.verifyTicket(
+      context: context,
       ticketId: _ticketIdController.text,
-      onError:
-          (error) => ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(error))),
-      onSuccess:
-          (message) => ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message))),
-      onLoading: (loading) => setState(() => _isVerifying = loading),
+      adminController: _adminController,
     );
-    await _verifyTicket(); // Refresh ticket details
+    setState(() {
+      _ticketDetails = result;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _markTicketAsUsed() async {
+    setState(() => _isVerifying = true);
+    await TicketUtils.markTicketAsUsed(
+      context: context,
+      ticketId: _ticketIdController.text,
+      adminController: _adminController,
+    );
+    await _verifyTicket();
+    setState(() => _isVerifying = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
           child: Column(
@@ -75,24 +92,41 @@ class _TicketVerificationPageState extends State<TicketVerificationPage> {
               ),
               const SizedBox(height: TSizes.spaceBtwItems),
               // Ticket ID Input
-              TextField(
-                controller: _ticketIdController,
-                decoration: InputDecoration(
-                  labelText: 'Enter Ticket ID',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon:
-                        _isLoading
-                            ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                            : const Icon(Icons.search),
-                    onPressed: _isLoading ? null : _verifyTicket,
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _ticketIdController,
+                      decoration: InputDecoration(
+                        labelText: 'Enter Ticket ID',
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          icon:
+                              _isLoading
+                                  ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Icon(Icons.search),
+                          onPressed: _isLoading ? null : _verifyTicket,
+                        ),
+                      ),
+                      onSubmitted: (_) => _verifyTicket(),
+                    ),
                   ),
-                ),
-                onSubmitted: (_) => _verifyTicket(),
+                  const SizedBox(width: TSizes.spaceBtwItems),
+                  ElevatedButton(
+                    onPressed: _scanBarcode,
+                    child: const Icon(
+                      Iconsax.scan,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: TSizes.spaceBtwItems),
 
@@ -105,7 +139,7 @@ class _TicketVerificationPageState extends State<TicketVerificationPage> {
                   arrivalTime: _ticketDetails!['arrivalTime'],
                   departureDate: _ticketDetails!['departureDate'],
                   arrivalDate: _ticketDetails!['arrivalDate'],
-                  seatsLeft: null, // Not available in verification context
+                  seatsLeft: null,
                   price:
                       (_ticketDetails!['price'] is int)
                           ? (_ticketDetails!['price'] as int).toDouble()
@@ -114,7 +148,6 @@ class _TicketVerificationPageState extends State<TicketVerificationPage> {
                   status: _ticketDetails!['status'],
                   onTap: () {
                     FocusScope.of(context).unfocus();
-
                     Get.to(
                       () => TicketDetailsScreen(
                         departureCity: _ticketDetails!['departureCity'],

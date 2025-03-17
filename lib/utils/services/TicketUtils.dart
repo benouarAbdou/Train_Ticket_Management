@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter/material.dart';
+import 'package:train_app/controllers/FirebaseAdminController.dart';
 
 class TicketUtils {
   static void shareTicket({
@@ -41,5 +43,40 @@ Ticket ID: ${ticketId ?? 'Not provided'}
     } catch (e) {
       return false;
     }
+  }
+
+  static Future<Map<String, dynamic>?> verifyTicket({
+    required BuildContext context,
+    required String ticketId,
+    required FirebaseAdminController adminController,
+  }) async {
+    final result = await adminController.verifyTicket(
+      ticketId: ticketId,
+      onError:
+          (error) => ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(error))),
+      onLoading: (loading) {},
+    );
+    return result;
+  }
+
+  static Future<void> markTicketAsUsed({
+    required BuildContext context,
+    required String ticketId,
+    required FirebaseAdminController adminController,
+  }) async {
+    await adminController.markTicketAsUsed(
+      ticketId: ticketId,
+      onError:
+          (error) => ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(error))),
+      onSuccess:
+          (message) => ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message))),
+      onLoading: (loading) {},
+    );
   }
 }

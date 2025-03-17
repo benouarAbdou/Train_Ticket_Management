@@ -54,6 +54,8 @@ dependencies:
   print_remover: ^1.0.2
   barcode: ^2.2.9
   barcode_widget: ^2.0.4
+  permission_handler: ^11.3.1
+  simple_barcode_scanner: ^0.3.0
 
 dev_dependencies:
   flutter_test:
