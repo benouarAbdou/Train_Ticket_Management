@@ -10,6 +10,7 @@ import 'package:train_app/widgets/client/EmptyViewWidget.dart';
 import 'package:train_app/widgets/client/ErrorViewWidget.dart';
 import 'package:train_app/widgets/client/TicketListWidget.dart';
 
+// Screen to display user's booked tickets
 class BookedTicketsScreen extends StatelessWidget {
   final _firebaseController = Get.find<FirebaseController>();
   final _hiveController = Get.find<HiveController>();
@@ -17,6 +18,7 @@ class BookedTicketsScreen extends StatelessWidget {
 
   BookedTicketsScreen({super.key});
 
+  // Fetch tickets from Firebase or local storage based on connectivity
   Future<List<Map<String, dynamic>>> _fetchTickets(String userId) async {
     try {
       final isOnline = await _connectivityService.checkConnectivity();
@@ -25,20 +27,23 @@ class BookedTicketsScreen extends StatelessWidget {
       if (isOnline) {
         tickets = await _firebaseController.readBookedTickets(userId);
         for (var ticket in tickets) {
-          await _hiveController.saveBookingLocally(ticket);
+          await _hiveController.saveBookingLocally(
+            ticket,
+          ); // Sync to local storage
         }
       } else {
-        tickets = await _hiveController.getLocalBookings();
+        tickets = await _hiveController.getLocalBookings(); // Use cached data
       }
       return tickets;
     } catch (e) {
-      return await _hiveController.getLocalBookings();
+      return await _hiveController
+          .getLocalBookings(); // Fallback to local on error
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final userId = _hiveController.getUserIdSync();
+    final userId = _hiveController.getUserIdSync(); // Get user ID synchronously
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -57,6 +62,7 @@ class BookedTicketsScreen extends StatelessWidget {
     );
   }
 
+  // Build header with title and connectivity status
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -73,6 +79,7 @@ class BookedTicketsScreen extends StatelessWidget {
     );
   }
 
+  // Build tickets list with refresh capability
   Widget _buildTicketsList(String userId) {
     return Expanded(
       child: RefreshIndicator(
@@ -86,6 +93,7 @@ class BookedTicketsScreen extends StatelessWidget {
     );
   }
 
+  // Handle different states of ticket data loading
   Widget _buildContent(
     BuildContext context,
     AsyncSnapshot<List<Map<String, dynamic>>> snapshot,
@@ -112,6 +120,7 @@ class BookedTicketsScreen extends StatelessWidget {
     );
   }
 
+  // Navigate to ticket details screen
   void _navigateToDetails(Map<String, dynamic> booking) {
     Get.to(
       () => TicketDetailsScreen(

@@ -6,6 +6,7 @@ import 'package:train_app/pages/client/BookingScreen.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 import 'package:train_app/widgets/TrainTicket.dart';
 
+// Home page widget for train search
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -17,9 +18,11 @@ class _MyHomePageState extends State<MyHomePage> {
   final _departController = TextEditingController();
   final _destinationController = TextEditingController();
   final _passengersController = TextEditingController();
-  final _firebaseController = Get.find<FirebaseController>();
+  final _firebaseController =
+      Get.find<FirebaseController>(); // Access Firebase controller
   DateTime? _selectedDate = DateTime.now();
 
+  // Show date picker and update selected date
   Future<void> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
@@ -32,6 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // Search trains with input validation
   void _searchTrains() async {
     final depart = _departController.text.trim();
     final destination = _destinationController.text.trim();
@@ -50,6 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // Validate search input fields
   bool _isValidInput(
     String depart,
     String destination,
@@ -62,6 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
         date != null;
   }
 
+  // Display error message
   void _showErrorSnackBar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Please fill all fields correctly')),
@@ -111,6 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // Autocomplete field for stations
   Widget _buildTypeAheadField({
     required TextEditingController controller,
     required String label,
@@ -137,6 +144,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // Input field for number of passengers
   Widget _buildPassengersField() {
     return TextField(
       keyboardType: TextInputType.number,
@@ -145,6 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // Date selection row
   Widget _buildDateSelector(BuildContext context) {
     return Row(
       children: [
@@ -164,6 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // Search button
   Widget _buildSearchButton() {
     return SizedBox(
       width: double.infinity,
@@ -174,6 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // Display search results with loading state
   Widget _buildSearchResults(BuildContext context) {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.4,
@@ -225,6 +236,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // Clean up controllers
   @override
   void dispose() {
     _departController.dispose();

@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:barcode_widget/barcode_widget.dart'; // Updated import
+import 'package:barcode_widget/barcode_widget.dart'; // For barcode generation
 import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
-import 'package:train_app/utils/services/PdfServices.dart';
-import 'package:train_app/utils/services/TicketUtils.dart';
+import 'package:train_app/utils/services/PdfServices.dart'; // For PDF generation
+import 'package:train_app/utils/services/TicketUtils.dart'; // Ticket utilities
 
+// Screen to display detailed ticket information
 class TicketDetailsScreen extends StatelessWidget {
-  final String departureCity;
-  final String arrivalCity;
-  final String departureTime;
-  final String arrivalTime;
-  final String departureDate;
-  final String arrivalDate;
+  final String departureCity,
+      arrivalCity,
+      departureTime,
+      arrivalTime,
+      departureDate,
+      arrivalDate,
+      passengerId;
   final double price;
   final int? numberOfPassengers;
-  final String? status;
+  final String? status, ticketId;
   final List<String>? passengerNames;
-  final String? ticketId;
-  final String passengerId;
 
   const TicketDetailsScreen({
     super.key,
@@ -41,7 +41,10 @@ class TicketDetailsScreen extends StatelessWidget {
       departureDate: departureDate,
       departureTime: departureTime,
     );
-    final displayStatus = isExpired ? 'Expired' : (status ?? 'Unknown');
+    final displayStatus =
+        isExpired
+            ? 'Expired'
+            : (status ?? 'Unknown'); // Determine ticket status
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -72,6 +75,7 @@ class TicketDetailsScreen extends StatelessWidget {
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: TSizes.sm),
+                      // Departure and arrival times
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -114,6 +118,7 @@ class TicketDetailsScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: TSizes.md),
+                      // Ticket details
                       Text(
                         'Ticket Number',
                         style: Theme.of(context).textTheme.bodyMedium,
@@ -141,6 +146,7 @@ class TicketDetailsScreen extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const SizedBox(height: TSizes.sm),
+                      // Passenger names if available
                       if (passengerNames != null &&
                           passengerNames!.isNotEmpty) ...[
                         Text(
@@ -164,7 +170,7 @@ class TicketDetailsScreen extends StatelessWidget {
                         ).textTheme.bodyLarge!.copyWith(color: TColors.primary),
                       ),
                       const SizedBox(height: TSizes.spaceBtwItems),
-                      // Barcode Widget
+                      // Barcode display
                       if (ticketId != null) ...[
                         Center(
                           child: Container(
@@ -177,16 +183,16 @@ class TicketDetailsScreen extends StatelessWidget {
                             height: 75,
                             child: BarcodeWidget(
                               barcode:
-                                  Barcode.code128(), // Using Code128 format
+                                  Barcode.code128(), // Generate Code128 barcode
                               data: ticketId!,
-                              color: TColors.black, // Use black in light mode
-                              drawText:
-                                  false, // Set to true if you want the ticketId text below barcode
+                              color: TColors.black,
+                              drawText: false, // Exclude text below barcode
                             ),
                           ),
                         ),
                         const SizedBox(height: TSizes.spaceBtwItems),
                       ],
+                      // Action buttons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -235,6 +241,7 @@ class TicketDetailsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Status badge
                 Positioned(
                   top: 0,
                   right: 0,

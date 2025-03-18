@@ -6,18 +6,18 @@ import 'package:train_app/utils/constants/colors.dart';
 import 'package:train_app/utils/constants/sizes.dart';
 import 'package:train_app/utils/services/NotificationsService.dart';
 
+// Booking screen widget for train ticket reservation
 class BookingScreen extends StatefulWidget {
-  final String departureCity;
-  final String arrivalCity;
-  final String departureTime;
-  final String arrivalTime;
-  final String departureDate;
-  final String arrivalDate;
+  final String departureCity,
+      arrivalCity,
+      departureTime,
+      arrivalTime,
+      departureDate,
+      arrivalDate,
+      trainId;
   final double price;
-  final int seatsLeft;
+  final int seatsLeft, numberOfPassengers;
   final num? totalDistance;
-  final int numberOfPassengers;
-  final String trainId;
 
   const BookingScreen({
     super.key,
@@ -39,10 +39,12 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
-  late List<TextEditingController> _nameControllers;
-  late TextEditingController _passengersController;
+  late List<TextEditingController>
+  _nameControllers; // Controllers for passenger names
+  late TextEditingController
+  _passengersController; // Controller for passenger count
   late int _numberOfPassengers;
-  bool _isBooking = false;
+  bool _isBooking = false; // Booking state flag
 
   final _firebaseController = Get.find<FirebaseController>();
   final _hiveController = Get.find<HiveController>();
@@ -63,13 +65,12 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   void dispose() {
-    for (var controller in _nameControllers) {
-      controller.dispose();
-    }
+    for (var controller in _nameControllers) controller.dispose();
     _passengersController.dispose();
     super.dispose();
   }
 
+  // Update passenger fields dynamically
   void _updatePassengerFields(int value) {
     setState(() {
       _numberOfPassengers = value;
@@ -84,6 +85,7 @@ class _BookingScreenState extends State<BookingScreen> {
     });
   }
 
+  // Process ticket booking
   Future<void> _bookTickets() async {
     setState(() => _isBooking = true);
     final userId = await _hiveController.getUserId();
@@ -101,14 +103,16 @@ class _BookingScreenState extends State<BookingScreen> {
     } catch (e) {
       _showSnackBar(context, 'Error booking tickets: $e');
     } finally {
-      setState(() => _isBooking = true);
+      setState(() => _isBooking = false); // Fixed typo from original
     }
   }
 
+  // Validate passenger names
   bool _isValidInput(List<String> passengerNames) {
     return passengerNames.every((name) => name.isNotEmpty);
   }
 
+  // Book tickets and save locally
   Future<List<Map<String, dynamic>>> _processBookings(
     String userId,
     List<String> passengerNames,
@@ -136,6 +140,7 @@ class _BookingScreenState extends State<BookingScreen> {
     return bookingDataList;
   }
 
+  // Create booking data map
   Map<String, dynamic> _createBookingData(String userId, String passengerName) {
     return {
       'trainId': widget.trainId,
@@ -155,6 +160,7 @@ class _BookingScreenState extends State<BookingScreen> {
     };
   }
 
+  // Handle booking results and notifications
   Future<void> _handleBookingResults(
     List<Map<String, dynamic>> bookingDataList,
   ) async {
@@ -179,6 +185,7 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
+  // Show snackbar with message
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(
       context,
@@ -209,6 +216,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  // Display trip details
   Widget _buildTripInfo(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,6 +241,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  // Passenger count input field
   Widget _buildPassengersField() {
     return TextField(
       controller: _passengersController,
@@ -252,6 +261,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  // Passenger name input fields
   Widget _buildNameFields() {
     return Column(
       children: List.generate(
@@ -270,6 +280,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  // Display price information
   Widget _buildPriceInfo(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,12 +299,12 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  // Booking button with loading state
   Widget _buildBookButton() {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed:
-            _isBooking ? null : _bookTickets, // Disable button while booking
+        onPressed: _isBooking ? null : _bookTickets,
         child:
             _isBooking
                 ? const SizedBox(
@@ -310,9 +321,9 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 }
 
+// Time and date display widget
 class _TimeColumn extends StatelessWidget {
-  final String time;
-  final String date;
+  final String time, date;
   final bool isEnd;
 
   const _TimeColumn({
