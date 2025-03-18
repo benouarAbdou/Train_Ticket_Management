@@ -15,6 +15,7 @@ class BookingScreen extends StatefulWidget {
   final String arrivalDate;
   final double price;
   final int seatsLeft;
+  final num? totalDistance;
   final int numberOfPassengers;
   final String trainId;
 
@@ -30,6 +31,7 @@ class BookingScreen extends StatefulWidget {
     required this.seatsLeft,
     required this.numberOfPassengers,
     required this.trainId,
+    this.totalDistance,
   });
 
   @override
@@ -125,6 +127,7 @@ class _BookingScreenState extends State<BookingScreen> {
         arrivalTime: bookingData['arrivalTime'],
         departureDate: bookingData['departureDate'],
         arrivalDate: bookingData['arrivalDate'],
+        totalDistance: bookingData['totalDistance'],
       );
       bookingData['status'] = result ? 'confirmed' : 'failed';
       bookingDataList.add(bookingData);
@@ -148,6 +151,7 @@ class _BookingScreenState extends State<BookingScreen> {
       'price': widget.price,
       'timestamp': DateTime.now().toIso8601String(),
       'status': 'pending',
+      if (widget.totalDistance != null) 'totalDistance': widget.totalDistance,
     };
   }
 

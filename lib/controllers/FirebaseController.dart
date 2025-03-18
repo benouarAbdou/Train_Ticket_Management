@@ -200,6 +200,7 @@ class FirebaseController extends GetxController {
     required String departureCity,
     required String arrivalCity,
     required int passengers,
+    num? totalDistance,
     required String userId,
     required String departureTime,
     required String arrivalTime,
@@ -249,6 +250,7 @@ class FirebaseController extends GetxController {
           'bookingDate': DateTime.now().toIso8601String(),
           'status': 'confirmed',
           'price': trainData['pricePerPassenger'],
+          'totalDistance': totalDistance,
         });
 
         return true;
@@ -281,6 +283,7 @@ class FirebaseController extends GetxController {
           'price': bookingData['price'],
           'passengerId': bookingData['passengerId'],
           'status': bookingData['status'],
+          'totalDistance': bookingData['totalDistance'],
           'passengerNames': bookingData['passengerNames'],
           'id': doc.id,
         });

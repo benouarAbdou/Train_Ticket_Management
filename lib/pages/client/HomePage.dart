@@ -215,6 +215,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               numberOfPassengers:
                                   int.tryParse(_passengersController.text) ?? 1,
                               trainId: train['id'],
+                              totalDistance: train['totalDistance'],
                             ),
                           ),
                     );

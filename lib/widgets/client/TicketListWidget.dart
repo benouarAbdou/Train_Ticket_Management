@@ -29,6 +29,7 @@ class TicketsList extends StatelessWidget {
           price: booking['price']?.toDouble() ?? 0.0,
           numberOfPassengers: booking['numberOfPassengers'] ?? 1,
           status: booking['status'] ?? 'Unknown',
+          distance: booking['totalDistance'],
           onTap: () => onTicketTap(booking),
         );
       },

@@ -14,7 +14,7 @@ class TrainTicket extends StatelessWidget {
   final int? seatsLeft;
   final double price;
   final int numberOfPassengers;
-  final double? distance;
+  final num? distance;
   final String? status;
   final GestureTapCallback onTap;
 
