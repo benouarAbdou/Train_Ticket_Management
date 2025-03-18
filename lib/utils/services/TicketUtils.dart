@@ -12,7 +12,7 @@ class TicketUtils {
     required String departureDate,
     required String arrivalDate,
     required double price,
-    int? numberOfPassengers,
+    required String passengerId,
     String? status,
     List<String>? passengerNames,
     String? ticketId,
@@ -20,10 +20,10 @@ class TicketUtils {
     final ticketDetails = '''
 From: $departureCity at $departureTime, $departureDate
 To: $arrivalCity at $arrivalTime, $arrivalDate
-Passengers: ${numberOfPassengers ?? 1}
 Price: \$${price.toStringAsFixed(0)}
 Status: ${status ?? 'Unknown'}
-Passenger Names: ${passengerNames?.join(', ') ?? 'Not provided'}
+Passenger Name: ${passengerNames?.join(', ') ?? 'Not provided'}
+Passenger ID: $passengerId
 Ticket ID: ${ticketId ?? 'Not provided'}
 ''';
     Share.share(ticketDetails, subject: 'Train Ticket Details');

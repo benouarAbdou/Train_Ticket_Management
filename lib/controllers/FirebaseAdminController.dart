@@ -14,14 +14,6 @@ class FirebaseAdminController extends GetxController {
     _loadInitialLoginStatus();
   }
 
-  Future<bool> isAdmin() async {
-    final user = _auth.currentUser;
-    if (user == null) return false;
-    // Assuming custom claims are used for admin status
-    final token = await user.getIdTokenResult();
-    return token.claims?['admin'] == true;
-  }
-
   Future<void> _loadInitialLoginStatus() async {
     isAdminLoggedIn.value = await hiveController.getAdminLoginStatus();
   }

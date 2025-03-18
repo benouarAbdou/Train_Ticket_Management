@@ -48,14 +48,6 @@ class FirebaseController extends GetxController {
     return stations.toList();
   }
 
-  // Authentication methods
-  Future<bool> isAdmin() async {
-    final user = _auth.currentUser;
-    if (user == null) return false;
-    final token = await user.getIdTokenResult();
-    return token.claims?['admin'] == true;
-  }
-
   // Train search methods (Updated for new structure)
   Future<void> searchTrains({
     required String departureCity,
@@ -89,86 +81,102 @@ class FirebaseController extends GetxController {
         if (departureIndex != -1 &&
             arrivalIndex != -1 &&
             departureIndex < arrivalIndex) {
-          final QuerySnapshot trainSnapshot =
-              await _firestore
-                  .collection('trains')
-                  .where('routeId', isEqualTo: routeDoc.id)
-                  .where('date', isEqualTo: formattedDate)
-                  .where('seatsLeft', isGreaterThanOrEqualTo: passengers)
-                  .where('isActive', isEqualTo: true)
-                  .get();
+          // Fetch departure and arrival station documents
+          final DocumentSnapshot departureStationDoc =
+              await _firestore.collection('stations').doc(departureCity).get();
+          final DocumentSnapshot arrivalStationDoc =
+              await _firestore.collection('stations').doc(arrivalCity).get();
 
-          for (var trainDoc in trainSnapshot.docs) {
-            final trainData = trainDoc.data() as Map<String, dynamic>;
-            final schedule = trainData['schedule'] as Map<String, dynamic>;
+          // Check if both stations are active
+          if (departureStationDoc.exists &&
+              arrivalStationDoc.exists &&
+              (departureStationDoc.data()
+                      as Map<String, dynamic>)['isActive'] ==
+                  true &&
+              (arrivalStationDoc.data() as Map<String, dynamic>)['isActive'] ==
+                  true) {
+            final QuerySnapshot trainSnapshot =
+                await _firestore
+                    .collection('trains')
+                    .where('routeId', isEqualTo: routeDoc.id)
+                    .where('date', isEqualTo: formattedDate)
+                    .where('seatsLeft', isGreaterThanOrEqualTo: passengers)
+                    .where('isActive', isEqualTo: true)
+                    .get();
 
-            if (schedule.containsKey(departureCity) &&
-                schedule.containsKey(arrivalCity)) {
-              final String departureTimeStr = schedule[departureCity];
-              final List<String> timeParts = departureTimeStr.split(':');
-              final int hour = int.parse(timeParts[0]);
-              final int minute = int.parse(timeParts[1]);
+            for (var trainDoc in trainSnapshot.docs) {
+              final trainData = trainDoc.data() as Map<String, dynamic>;
+              final schedule = trainData['schedule'] as Map<String, dynamic>;
 
-              final DateTime departureDateTime = DateTime(
-                date.year,
-                date.month,
-                date.day,
-                hour,
-                minute,
-              );
+              if (schedule.containsKey(departureCity) &&
+                  schedule.containsKey(arrivalCity)) {
+                final String departureTimeStr = schedule[departureCity];
+                final List<String> timeParts = departureTimeStr.split(':');
+                final int hour = int.parse(timeParts[0]);
+                final int minute = int.parse(timeParts[1]);
 
-              if (departureDateTime.isAfter(now)) {
-                // Calculate total distance for the route
-                double totalDistance = 0.0;
+                final DateTime departureDateTime = DateTime(
+                  date.year,
+                  date.month,
+                  date.day,
+                  hour,
+                  minute,
+                );
 
-                // Get the segment of the route from departure to arrival
-                final List<String> routeSegment =
-                    stationIds
-                        .sublist(departureIndex, arrivalIndex + 1)
-                        .cast<String>();
+                if (departureDateTime.isAfter(now)) {
+                  // Calculate total distance for the route
+                  double totalDistance = 0.0;
 
-                // Fetch distances between consecutive stations
-                for (int i = 0; i < routeSegment.length - 1; i++) {
-                  final String fromStation = routeSegment[i];
-                  final String toStation = routeSegment[i + 1];
+                  // Get the segment of the route from departure to arrival
+                  final List<String> routeSegment =
+                      stationIds
+                          .sublist(departureIndex, arrivalIndex + 1)
+                          .cast<String>();
 
-                  // Fetch the 'fromStation' document from the stations collection
-                  final DocumentSnapshot stationDoc =
-                      await _firestore
-                          .collection('stations')
-                          .doc(fromStation)
-                          .get();
+                  // Fetch distances between consecutive stations
+                  for (int i = 0; i < routeSegment.length - 1; i++) {
+                    final String fromStation = routeSegment[i];
+                    final String toStation = routeSegment[i + 1];
 
-                  if (stationDoc.exists) {
-                    final stationData =
-                        stationDoc.data() as Map<String, dynamic>;
-                    final distances =
-                        stationData['distances'] as Map<String, dynamic>;
+                    // Fetch the 'fromStation' document from the stations collection
+                    final DocumentSnapshot stationDoc =
+                        await _firestore
+                            .collection('stations')
+                            .doc(fromStation)
+                            .get();
 
-                    // Add the distance from 'fromStation' to 'toStation'
-                    if (distances.containsKey(toStation)) {
-                      totalDistance += (distances[toStation] as num).toDouble();
-                    } else {
-                      // If direct distance isn't available, you might need to handle this case
-                      totalDistance +=
-                          0.0; // Or throw an error, depending on your needs
+                    if (stationDoc.exists) {
+                      final stationData =
+                          stationDoc.data() as Map<String, dynamic>;
+                      final distances =
+                          stationData['distances'] as Map<String, dynamic>;
+
+                      // Add the distance from 'fromStation' to 'toStation'
+                      if (distances.containsKey(toStation)) {
+                        totalDistance +=
+                            (distances[toStation] as num).toDouble();
+                      } else {
+                        // If direct distance isn't available, you might need to handle this case
+                        totalDistance +=
+                            0.0; // Or throw an error, depending on your needs
+                      }
                     }
                   }
-                }
 
-                searchResults.add({
-                  'id': trainDoc.id,
-                  'departureCity': departureCity,
-                  'arrivalCity': arrivalCity,
-                  'departureTime': schedule[departureCity],
-                  'arrivalTime': schedule[arrivalCity],
-                  'departureDate': formattedDate,
-                  'arrivalDate': formattedDate,
-                  'seatsLeft': trainData['seatsLeft'],
-                  'price': trainData['pricePerPassenger'],
-                  'totalDistance':
-                      totalDistance, // Add total distance to the result
-                });
+                  searchResults.add({
+                    'id': trainDoc.id,
+                    'departureCity': departureCity,
+                    'arrivalCity': arrivalCity,
+                    'departureTime': schedule[departureCity],
+                    'arrivalTime': schedule[arrivalCity],
+                    'departureDate': formattedDate,
+                    'arrivalDate': formattedDate,
+                    'seatsLeft': trainData['seatsLeft'],
+                    'price': trainData['pricePerPassenger'],
+                    'totalDistance':
+                        totalDistance, // Add total distance to the result
+                  });
+                }
               }
             }
           }
@@ -279,25 +287,6 @@ class FirebaseController extends GetxController {
       }
 
       return bookings;
-    } catch (e) {
-      return [];
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> getUserBookings(String userId) async {
-    try {
-      final QuerySnapshot bookingsSnapshot =
-          await _firestore
-              .collection('bookings')
-              .where('userId', isEqualTo: userId)
-              .orderBy('bookingDate', descending: true)
-              .get();
-
-      return bookingsSnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
-        return data;
-      }).toList();
     } catch (e) {
       return [];
     }

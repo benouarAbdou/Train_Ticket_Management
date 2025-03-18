@@ -50,7 +50,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       appBar: AppBar(),
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(),
-
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
           child: Form(
@@ -95,7 +94,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 const SizedBox(height: TSizes.spaceBtwInputFields),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleLogin,
-
                   child:
                       _isLoading
                           ? const Text("Loading..")
